@@ -5,7 +5,7 @@
 require("dotenv").config();
 
 console.log("╔══════════════════════════════════════════╗");
-console.log("║  🦖 PTERO AUTO PANEL — Bot + Website     ║");
+console.log("║  🦖 ALL FITUR — Panel + Store + Games    ║");
 console.log("╚══════════════════════════════════════════╝");
 
 // Jalankan website

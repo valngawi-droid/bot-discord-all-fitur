@@ -6,10 +6,13 @@ const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
 const ptero = require("../pterodactyl");
+const store = require("../features/store");
+const welcome = require("../features/welcome");
 
 const app = express();
 const PORT = process.env.WEB_PORT || 3000;
 const ADMIN_PASSWORD = process.env.WEB_ADMIN_PASSWORD || "admin123";
+const GUILD_ID = process.env.GUILD_ID || "web";
 
 // Mode demo terpusat dari modul pterodactyl
 const DEMO_MODE = ptero.DEMO_MODE;
@@ -28,10 +31,18 @@ function auth(req, res, next) {
 
 // ============ API ============
 app.get("/api/status", (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
   res.json({
     demo: DEMO_MODE,
     panelUrl: process.env.PTERO_URL || "(belum diatur)",
     plans: ptero.PLANS,
+    store: {
+      name: cfg.name,
+      open: cfg.open,
+      hours: `${cfg.hoursOpen} — ${cfg.hoursClose}`,
+      products: cfg.products.length,
+      payments: cfg.payments.length,
+    },
   });
 });
 
@@ -114,6 +125,89 @@ app.delete("/api/users/:id", auth, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ============ STORE ============
+app.get("/api/store", auth, (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
+  const wel = welcome.getConfig(GUILD_ID);
+  res.json({ store: cfg, welcome: wel });
+});
+
+app.post("/api/store/toggle", auth, (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
+  cfg.open = !cfg.open;
+  store.saveConfig(GUILD_ID, cfg);
+  res.json({ open: cfg.open, name: cfg.name });
+});
+
+app.post("/api/store/settings", auth, (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
+  const { name, hoursOpen, hoursClose } = req.body || {};
+  if (name) cfg.name = String(name).slice(0, 64);
+  if (hoursOpen) cfg.hoursOpen = String(hoursOpen).slice(0, 16);
+  if (hoursClose) cfg.hoursClose = String(hoursClose).slice(0, 16);
+  store.saveConfig(GUILD_ID, cfg);
+  res.json(cfg);
+});
+
+app.post("/api/store/products", auth, (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
+  const { name, price, stock, description } = req.body || {};
+  if (!name || price == null) return res.status(400).json({ error: "Nama dan harga wajib" });
+  const item = {
+    id: `web-${cfg.nextProductId++}`,
+    name: String(name).slice(0, 64),
+    price: Number(price) || 0,
+    stock: stock == null || stock === "" ? -1 : Number(stock),
+    description: description ? String(description).slice(0, 200) : "",
+  };
+  cfg.products.push(item);
+  store.saveConfig(GUILD_ID, cfg);
+  res.json(item);
+});
+
+app.delete("/api/store/products/:id", auth, (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
+  cfg.products = cfg.products.filter((p) => p.id !== req.params.id);
+  store.saveConfig(GUILD_ID, cfg);
+  res.json({ ok: true });
+});
+
+app.post("/api/store/payments", auth, (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
+  const { method, number, holder } = req.body || {};
+  if (!method || !number) return res.status(400).json({ error: "Metode dan nomor wajib" });
+  cfg.payments.push({
+    method: String(method).slice(0, 32),
+    number: String(number).slice(0, 64),
+    holder: holder ? String(holder).slice(0, 64) : "",
+  });
+  store.saveConfig(GUILD_ID, cfg);
+  res.json({ ok: true, payments: cfg.payments });
+});
+
+app.delete("/api/store/payments/:method", auth, (req, res) => {
+  const cfg = store.getConfig(GUILD_ID);
+  const key = decodeURIComponent(req.params.method).toLowerCase();
+  cfg.payments = cfg.payments.filter((p) => p.method.toLowerCase() !== key);
+  store.saveConfig(GUILD_ID, cfg);
+  res.json({ ok: true });
+});
+
+app.post("/api/welcome", auth, (req, res) => {
+  const cfg = welcome.getConfig(GUILD_ID);
+  const { kind, enabled, message, color } = req.body || {};
+  if (kind !== "welcome" && kind !== "goodbye") {
+    return res.status(400).json({ error: "kind harus welcome/goodbye" });
+  }
+  if (typeof enabled === "boolean") cfg[kind].enabled = enabled;
+  if (message) cfg[kind].message = String(message).slice(0, 500);
+  if (color && /^[0-9a-fA-F]{6}$/.test(color.replace("#", ""))) {
+    cfg[kind].color = color.replace("#", "");
+  }
+  welcome.saveConfig(GUILD_ID, cfg);
+  res.json(cfg);
 });
 
 app.listen(PORT, "0.0.0.0", () => {

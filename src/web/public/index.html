@@ -88,11 +88,17 @@
     #loginOverlay .icon-big { font-size: 46px; margin-bottom: 8px; }
     .hidden { display: none !important; }
 
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
     .stat { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 18px; text-align: center; }
     .stat .num { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
     .stat .lbl { font-size: .75rem; color: var(--muted); margin-top: 4px; }
-    @media (max-width: 600px) { .stats { grid-template-columns: 1fr; } }
+    @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 500px) { .stats { grid-template-columns: 1fr; } }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+    .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+    .pill.on { background: rgba(0,217,165,.15); color: var(--accent); }
+    .pill.off { background: rgba(255,92,108,.15); color: var(--danger); }
 
     footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 40px; }
     .toast {
@@ -109,7 +115,7 @@
   <div id="loginOverlay">
     <div class="card">
       <div class="icon-big">🦖</div>
-      <h2 style="justify-content:center">Ptero Auto Panel</h2>
+      <h2 style="justify-content:center">All Fitur Dashboard</h2>
       <p style="color:var(--muted);font-size:.85rem">Masukkan password admin untuk lanjut</p>
       <label style="text-align:left">Password</label>
       <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
@@ -123,8 +129,8 @@
       <div class="logo">
         <div class="icon">🦖</div>
         <div>
-          <h1>Ptero Auto Panel</h1>
-          <p>Auto Create Panel Pterodactyl via Website & Bot Discord</p>
+          <h1>All Fitur Dashboard</h1>
+          <p>Panel Pterodactyl · Store · Ticket · Welcome · Games</p>
         </div>
       </div>
       <span class="badge demo hidden" id="badgeDemo">⚠ MODE DEMO</span>
@@ -134,6 +140,7 @@
     <div class="stats">
       <div class="stat"><div class="num" id="statServers">0</div><div class="lbl">Total Server</div></div>
       <div class="stat"><div class="num" id="statUsers">0</div><div class="lbl">Total User</div></div>
+      <div class="stat"><div class="num" id="statStore" style="font-size:1.05rem;padding-top:6px">—</div><div class="lbl">Status Store</div></div>
       <div class="stat"><div class="num" id="statPanel" style="font-size:.9rem;padding-top:8px">-</div><div class="lbl">URL Panel</div></div>
     </div>
 
@@ -223,6 +230,133 @@ async function init() {
     .map(([k, v]) => `<option value="${k}">${k.toUpperCase()} — ${v.label}</option>`)
     .join('');
   refresh();
+  loadStore();
+}
+
+function rp(n) {
+  return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+}
+
+function paintStore(cfg, wel) {
+  const open = !!cfg.open;
+  document.getElementById('statStore').textContent = open ? '🟢 BUKA' : '🔴 TUTUP';
+  const pill = document.getElementById('storePill');
+  pill.textContent = open ? 'BUKA' : 'TUTUP';
+  pill.className = 'pill ' + (open ? 'on' : 'off');
+  document.getElementById('storeHours').textContent = (cfg.hoursOpen || '09:00') + ' — ' + (cfg.hoursClose || '21:00');
+  document.getElementById('btnToggleStore').textContent = open ? '🔴 Tutup Store' : '🟢 Buka Store';
+  document.getElementById('storeName').value = cfg.name || '';
+  document.getElementById('storeOpen').value = cfg.hoursOpen || '';
+  document.getElementById('storeClose').value = cfg.hoursClose || '';
+  document.getElementById('tbodyProducts').innerHTML = (cfg.products || []).map(p =>
+    `<tr><td>${p.name}</td><td>${rp(p.price)}</td><td>${p.stock < 0 ? '∞' : p.stock}</td>
+     <td><button class="small danger" onclick="delProduct('${p.id}')">Hapus</button></td></tr>`
+  ).join('') || '<tr><td colspan="4" style="color:var(--muted)">Belum ada produk</td></tr>';
+  document.getElementById('tbodyPayments').innerHTML = (cfg.payments || []).map(p =>
+    `<tr><td>${p.method}</td><td>${p.number}${p.holder ? ' a.n. ' + p.holder : ''}</td>
+     <td><button class="small danger" onclick="delPayment('${encodeURIComponent(p.method)}')">Hapus</button></td></tr>`
+  ).join('') || '<tr><td colspan="3" style="color:var(--muted)">Belum ada payment</td></tr>';
+  if (wel) {
+    document.getElementById('welMsg').value = wel.welcome?.message || '';
+    document.getElementById('byeMsg').value = wel.goodbye?.message || '';
+    document.getElementById('btnWel').textContent = wel.welcome?.enabled ? '👋 Welcome ON' : '⏸️ Welcome OFF';
+    document.getElementById('btnBye').textContent = wel.goodbye?.enabled ? '👋 Goodbye ON' : '⏸️ Goodbye OFF';
+  }
+}
+
+async function loadStore() {
+  try {
+    const data = await api('/api/store');
+    paintStore(data.store, data.welcome);
+  } catch (e) { console.error(e); }
+}
+
+async function toggleStore() {
+  try {
+    await api('/api/store/toggle', { method: 'POST', body: '{}' });
+    toast('Status store diubah');
+    loadStore();
+  } catch (e) { alert(e.message); }
+}
+
+async function saveStore() {
+  try {
+    await api('/api/store/settings', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: document.getElementById('storeName').value,
+        hoursOpen: document.getElementById('storeOpen').value,
+        hoursClose: document.getElementById('storeClose').value,
+      }),
+    });
+    toast('Pengaturan store disimpan');
+    loadStore();
+  } catch (e) { alert(e.message); }
+}
+
+async function addProduct() {
+  const name = document.getElementById('prodName').value.trim();
+  const price = document.getElementById('prodPrice').value;
+  if (!name || price === '') { alert('Nama dan harga wajib'); return; }
+  try {
+    await api('/api/store/products', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        price,
+        stock: document.getElementById('prodStock').value,
+        description: document.getElementById('prodDesc').value,
+      }),
+    });
+    document.getElementById('prodName').value = '';
+    toast('Produk ditambah');
+    loadStore();
+  } catch (e) { alert(e.message); }
+}
+
+async function delProduct(id) {
+  if (!confirm('Hapus produk ini?')) return;
+  try { await api('/api/store/products/' + id, { method: 'DELETE' }); loadStore(); }
+  catch (e) { alert(e.message); }
+}
+
+async function addPayment() {
+  const method = document.getElementById('payMethod').value.trim();
+  const number = document.getElementById('payNumber').value.trim();
+  if (!method || !number) { alert('Metode dan nomor wajib'); return; }
+  try {
+    await api('/api/store/payments', {
+      method: 'POST',
+      body: JSON.stringify({ method, number, holder: document.getElementById('payHolder').value }),
+    });
+    document.getElementById('payMethod').value = '';
+    document.getElementById('payNumber').value = '';
+    toast('Payment ditambah');
+    loadStore();
+  } catch (e) { alert(e.message); }
+}
+
+async function delPayment(method) {
+  try { await api('/api/store/payments/' + method, { method: 'DELETE' }); loadStore(); }
+  catch (e) { alert(e.message); }
+}
+
+async function toggleWel(kind) {
+  try {
+    const data = await api('/api/store');
+    const enabled = !data.welcome[kind].enabled;
+    await api('/api/welcome', { method: 'POST', body: JSON.stringify({ kind, enabled }) });
+    toast(kind + (enabled ? ' aktif' : ' nonaktif'));
+    loadStore();
+  } catch (e) { alert(e.message); }
+}
+
+async function saveWelcomeMsgs() {
+  try {
+    await api('/api/welcome', { method: 'POST', body: JSON.stringify({ kind: 'welcome', message: document.getElementById('welMsg').value }) });
+    await api('/api/welcome', { method: 'POST', body: JSON.stringify({ kind: 'goodbye', message: document.getElementById('byeMsg').value }) });
+    toast('Pesan welcome/goodbye disimpan');
+  } catch (e) { alert(e.message); }
 }
 
 async function refresh() {

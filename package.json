@@ -1,7 +1,7 @@
 {
-  "name": "bot-discord-pterodactyl-panel",
-  "version": "1.0.0",
-  "description": "Bot Discord Auto Create Panel Pterodactyl + Website Dashboard (siap deploy di VPS)",
+  "name": "bot-discord-all-fitur",
+  "version": "2.0.0",
+  "description": "Bot Discord all-fitur: Auto Panel Pterodactyl, Store buka/tutup, Ticket, Take Role, Welcome/Goodbye, Games + Website Dashboard",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -13,7 +13,10 @@
     "discord",
     "bot",
     "pterodactyl",
-    "auto-panel",
+    "store",
+    "ticket",
+    "welcome",
+    "games",
     "vps"
   ],
   "author": "valngawi-droid",
