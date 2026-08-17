@@ -6,6 +6,23 @@ const axios = require("axios");
 const PTERO_URL = (process.env.PTERO_URL || "").replace(/\/+$/, "");
 const PTERO_APP_KEY = process.env.PTERO_APP_KEY || "";
 
+// MODE DEMO otomatis jika API panel belum diisi
+const DEMO_MODE =
+  !PTERO_URL || !PTERO_APP_KEY || PTERO_APP_KEY.includes("xxxx");
+
+// Penyimpanan data demo (in-memory)
+const demoDB = {
+  users: [
+    { id: 1, username: "budi", email: "budi@panel.gg" },
+    { id: 2, username: "siti", email: "siti@panel.gg" },
+  ],
+  servers: [
+    { id: 1, name: "budi-server", user: 1, limits: { memory: 2048 } },
+    { id: 2, name: "siti-server", user: 2, limits: { memory: 0 } },
+  ],
+  nextId: 3,
+};
+
 const api = axios.create({
   baseURL: `${PTERO_URL}/api/application`,
   headers: {
@@ -54,11 +71,21 @@ async function getOrCreateUser({ username, email }) {
 }
 
 async function listUsers(page = 1) {
+  if (DEMO_MODE) {
+    return {
+      data: demoDB.users.map((u) => ({ attributes: u })),
+      meta: { pagination: { total: demoDB.users.length } },
+    };
+  }
   const res = await api.get(`/users?page=${page}&per_page=50`);
   return res.data;
 }
 
 async function deleteUser(userId) {
+  if (DEMO_MODE) {
+    demoDB.users = demoDB.users.filter((u) => u.id !== userId);
+    return true;
+  }
   await api.delete(`/users/${userId}`);
   return true;
 }
@@ -137,11 +164,21 @@ async function createServer({ userId, name, ram, disk, cpu }) {
 }
 
 async function listServers(page = 1) {
+  if (DEMO_MODE) {
+    return {
+      data: demoDB.servers.map((s) => ({ attributes: s })),
+      meta: { pagination: { total: demoDB.servers.length } },
+    };
+  }
   const res = await api.get(`/servers?page=${page}&per_page=50`);
   return res.data;
 }
 
 async function deleteServer(serverId) {
+  if (DEMO_MODE) {
+    demoDB.servers = demoDB.servers.filter((s) => s.id !== serverId);
+    return true;
+  }
   await api.delete(`/servers/${serverId}`);
   return true;
 }
@@ -170,6 +207,35 @@ async function autoCreatePanel({ username, plan }) {
 
   const cleanName = username.toLowerCase().replace(/[^a-z0-9]/g, "");
   const email = `${cleanName}@panel.gg`;
+
+  // ============ MODE DEMO ============
+  if (DEMO_MODE) {
+    const pass = generatePassword();
+    const id = demoDB.nextId++;
+    demoDB.users.push({ id, username: cleanName, email });
+    demoDB.servers.push({
+      id,
+      name: `${cleanName}-server`,
+      user: id,
+      limits: { memory: planData.ram },
+    });
+    return {
+      demo: true,
+      panelUrl: PTERO_URL || "https://panel.domainkamu.com (DEMO)",
+      username: cleanName,
+      email,
+      password: pass,
+      existed: false,
+      server: {
+        id,
+        name: `${cleanName}-server`,
+        ram: planData.ram === 0 ? "Unlimited" : `${planData.ram} MB`,
+        disk: planData.disk === 0 ? "Unlimited" : `${planData.disk} MB`,
+        cpu: planData.cpu === 0 ? "Unlimited" : `${planData.cpu}%`,
+        plan: planData.label,
+      },
+    };
+  }
 
   const { user, password, existed } = await getOrCreateUser({
     username: cleanName,
@@ -213,4 +279,5 @@ module.exports = {
   autoCreatePanel,
   generatePassword,
   PLANS,
+  DEMO_MODE,
 };

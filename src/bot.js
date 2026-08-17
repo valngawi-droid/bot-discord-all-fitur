@@ -24,6 +24,8 @@ const ADMIN_ROLE_IDS = (process.env.ADMIN_ROLE_IDS || "")
   .filter(Boolean);
 
 function isAdmin(interaction) {
+  // Saat MODE DEMO semua orang boleh test command
+  if (ptero.DEMO_MODE) return true;
   if (OWNER_IDS.includes(interaction.user.id)) return true;
   if (interaction.member && interaction.member.roles) {
     const roles = interaction.member.roles.cache;
@@ -34,9 +36,13 @@ function isAdmin(interaction) {
 
 client.once("ready", () => {
   console.log(`✅ Bot login sebagai ${client.user.tag}`);
-  client.user.setActivity("Auto Create Panel 🚀", {
-    type: ActivityType.Watching,
-  });
+  if (ptero.DEMO_MODE) {
+    console.log("⚠️  BOT MODE DEMO — panel belum disambungkan, data hanya simulasi");
+  }
+  client.user.setActivity(
+    ptero.DEMO_MODE ? "MODE DEMO 🧪 Auto Panel" : "Auto Create Panel 🚀",
+    { type: ActivityType.Watching }
+  );
 });
 
 client.on("interactionCreate", async (interaction) => {
@@ -99,9 +105,13 @@ client.on("interactionCreate", async (interaction) => {
       const result = await ptero.autoCreatePanel({ username, plan });
 
       const embed = new EmbedBuilder()
-        .setColor(0x00ff88)
-        .setTitle("✅ Panel Berhasil Dibuat!")
-        .setDescription("Berikut detail akun panel kamu. **Jangan bagikan ke siapapun!**")
+        .setColor(result.demo ? 0xffc400 : 0x00ff88)
+        .setTitle(result.demo ? "🧪 [DEMO] Panel Berhasil Dibuat!" : "✅ Panel Berhasil Dibuat!")
+        .setDescription(
+          (result.demo
+            ? "⚠️ **MODE DEMO** — data hanya simulasi, panel asli belum disambungkan.\n\n"
+            : "") + "Berikut detail akun panel kamu. **Jangan bagikan ke siapapun!**"
+        )
         .addFields(
           { name: "🌐 Login Panel", value: result.panelUrl, inline: false },
           { name: "👤 Username", value: `\`${result.username}\``, inline: true },
@@ -205,4 +215,14 @@ if (!process.env.BOT_TOKEN) {
   process.exit(1);
 }
 
-client.login(process.env.BOT_TOKEN);
+// Jangan biarkan error koneksi mematikan seluruh proses (website tetap jalan)
+process.on("unhandledRejection", (err) => {
+  console.error("⚠️  Unhandled rejection:", err.message || err);
+});
+client.on("error", (err) => console.error("⚠️  Discord error:", err.message));
+
+client.login(process.env.BOT_TOKEN).catch((err) => {
+  console.error("❌ Bot gagal login:", err.message);
+  console.error("   → Cek token, atau koneksi internet ke discord.com");
+  console.error("   → Website tetap berjalan normal.");
+});

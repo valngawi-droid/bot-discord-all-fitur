@@ -11,11 +11,8 @@ const app = express();
 const PORT = process.env.WEB_PORT || 3000;
 const ADMIN_PASSWORD = process.env.WEB_ADMIN_PASSWORD || "admin123";
 
-// Cek apakah konfigurasi panel sudah diisi (kalau belum → mode demo)
-const DEMO_MODE =
-  !process.env.PTERO_URL ||
-  !process.env.PTERO_APP_KEY ||
-  process.env.PTERO_APP_KEY.includes("xxxx");
+// Mode demo terpusat dari modul pterodactyl
+const DEMO_MODE = ptero.DEMO_MODE;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -48,54 +45,12 @@ app.post("/api/login", (req, res) => {
   res.status(401).json({ error: "Password salah!" });
 });
 
-// Demo data
-let demoServers = [
-  { id: 1, name: "budi-server", user: 1, ram: "2048 MB", plan: "2GB" },
-  { id: 2, name: "siti-server", user: 2, ram: "Unlimited", plan: "UNLI" },
-];
-let demoUsers = [
-  { id: 1, username: "budi", email: "budi@panel.gg" },
-  { id: 2, username: "siti", email: "siti@panel.gg" },
-];
-let demoNextId = 3;
-
 app.post("/api/create-panel", auth, async (req, res) => {
   const { username, plan } = req.body;
   if (!username || !plan)
     return res.status(400).json({ error: "Username dan paket wajib diisi!" });
 
   try {
-    if (DEMO_MODE) {
-      // Simulasi tanpa panel asli
-      const cleanName = username.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const planData = ptero.PLANS[plan];
-      const pass = ptero.generatePassword();
-      const id = demoNextId++;
-      demoUsers.push({ id, username: cleanName, email: `${cleanName}@panel.gg` });
-      demoServers.push({
-        id,
-        name: `${cleanName}-server`,
-        user: id,
-        ram: planData.ram === 0 ? "Unlimited" : `${planData.ram} MB`,
-        plan: plan.toUpperCase(),
-      });
-      return res.json({
-        demo: true,
-        panelUrl: "https://panel.domainkamu.com",
-        username: cleanName,
-        email: `${cleanName}@panel.gg`,
-        password: pass,
-        server: {
-          id,
-          name: `${cleanName}-server`,
-          ram: planData.ram === 0 ? "Unlimited" : `${planData.ram} MB`,
-          disk: planData.disk === 0 ? "Unlimited" : `${planData.disk} MB`,
-          cpu: planData.cpu === 0 ? "Unlimited" : `${planData.cpu}%`,
-          plan: planData.label,
-        },
-      });
-    }
-
     const result = await ptero.autoCreatePanel({ username, plan });
     res.json(result);
   } catch (err) {
@@ -109,7 +64,6 @@ app.post("/api/create-panel", auth, async (req, res) => {
 
 app.get("/api/servers", auth, async (req, res) => {
   try {
-    if (DEMO_MODE) return res.json({ demo: true, servers: demoServers });
     const data = await ptero.listServers();
     res.json({
       servers: data.data.map((s) => ({
@@ -129,7 +83,6 @@ app.get("/api/servers", auth, async (req, res) => {
 
 app.get("/api/users", auth, async (req, res) => {
   try {
-    if (DEMO_MODE) return res.json({ demo: true, users: demoUsers });
     const data = await ptero.listUsers();
     res.json({
       users: data.data.map((u) => ({
@@ -146,10 +99,6 @@ app.get("/api/users", auth, async (req, res) => {
 app.delete("/api/servers/:id", auth, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (DEMO_MODE) {
-      demoServers = demoServers.filter((s) => s.id !== id);
-      return res.json({ ok: true, demo: true });
-    }
     await ptero.deleteServer(id);
     res.json({ ok: true });
   } catch (err) {
@@ -160,10 +109,6 @@ app.delete("/api/servers/:id", auth, async (req, res) => {
 app.delete("/api/users/:id", auth, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (DEMO_MODE) {
-      demoUsers = demoUsers.filter((u) => u.id !== id);
-      return res.json({ ok: true, demo: true });
-    }
     await ptero.deleteUser(id);
     res.json({ ok: true });
   } catch (err) {
