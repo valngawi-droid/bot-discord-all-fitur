@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🦖 Ptero Auto Panel — Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    :root {
+      --bg: #0b0e14;
+      --card: #141926;
+      --card2: #1b2233;
+      --accent: #00d9a5;
+      --accent2: #5865f2;
+      --text: #e6ebf5;
+      --muted: #8b94a8;
+      --danger: #ff5c6c;
+    }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(600px circle at 15% 10%, rgba(0,217,165,.12), transparent 50%),
+        radial-gradient(700px circle at 85% 20%, rgba(88,101,242,.14), transparent 50%),
+        radial-gradient(500px circle at 50% 90%, rgba(0,217,165,.07), transparent 50%);
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo .icon { width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: grid; place-items: center; font-size: 24px; }
+    .logo h1 { font-size: 1.3rem; }
+    .logo p { color: var(--muted); font-size: .8rem; }
+    .badge { padding: 4px 12px; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+    .badge.demo { background: rgba(255,196,0,.15); color: #ffc400; border: 1px solid rgba(255,196,0,.35); }
+    .badge.live { background: rgba(0,217,165,.15); color: var(--accent); border: 1px solid rgba(0,217,165,.35); }
+
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+    h2 { font-size: 1.05rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    label { display: block; font-size: .8rem; color: var(--muted); margin: 14px 0 6px; }
+    input, select {
+      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1);
+      background: var(--card2); color: var(--text); font-size: .95rem; outline: none; transition: border .2s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    button {
+      cursor: pointer; border: none; border-radius: 10px; padding: 12px 20px; font-weight: 700; font-size: .95rem;
+      background: linear-gradient(135deg, var(--accent), #00b88c); color: #04261d; transition: transform .15s, opacity .2s;
+      width: 100%; margin-top: 18px;
+    }
+    button:hover { transform: translateY(-1px); opacity: .92; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button.small { width: auto; padding: 6px 12px; font-size: .75rem; margin: 0; }
+    button.danger { background: linear-gradient(135deg, var(--danger), #d63a4a); color: #fff; }
+    button.ghost { background: var(--card2); color: var(--text); border: 1px solid rgba(255,255,255,.12); }
+
+    .result { margin-top: 18px; background: var(--card2); border: 1px solid rgba(0,217,165,.3); border-radius: 12px; padding: 18px; display: none; }
+    .result.show { display: block; animation: pop .25s ease; }
+    @keyframes pop { from { transform: scale(.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .result h3 { color: var(--accent); font-size: .95rem; margin-bottom: 10px; }
+    .kv { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,.07); font-size: .85rem; }
+    .kv:last-child { border-bottom: none; }
+    .kv .k { color: var(--muted); }
+    .kv .v { font-family: 'Cascadia Code', monospace; word-break: break-all; text-align: right; }
+    .kv .v.copy { cursor: pointer; color: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th { text-align: left; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab { padding: 8px 16px; border-radius: 999px; font-size: .82rem; cursor: pointer; background: var(--card2); color: var(--muted); border: 1px solid transparent; }
+    .tab.active { color: var(--accent); border-color: rgba(0,217,165,.4); background: rgba(0,217,165,.08); }
+
+    .error-msg { color: var(--danger); font-size: .85rem; margin-top: 12px; display: none; }
+    .error-msg.show { display: block; }
+
+    /* Login overlay */
+    #loginOverlay {
+      position: fixed; inset: 0; background: rgba(5,8,14,.92); backdrop-filter: blur(6px);
+      display: grid; place-items: center; z-index: 100;
+    }
+    #loginOverlay .card { width: 100%; max-width: 380px; text-align: center; }
+    #loginOverlay .icon-big { font-size: 46px; margin-bottom: 8px; }
+    .hidden { display: none !important; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 18px; text-align: center; }
+    .stat .num { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+    .stat .lbl { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+    @media (max-width: 600px) { .stats { grid-template-columns: 1fr; } }
+
+    footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 40px; }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--accent); color: #04261d; padding: 10px 22px; border-radius: 999px; font-weight: 700;
+      font-size: .85rem; transition: transform .3s; z-index: 200;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginOverlay">
+    <div class="card">
+      <div class="icon-big">🦖</div>
+      <h2 style="justify-content:center">Ptero Auto Panel</h2>
+      <p style="color:var(--muted);font-size:.85rem">Masukkan password admin untuk lanjut</p>
+      <label style="text-align:left">Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+      <div class="error-msg" id="loginErr">Password salah!</div>
+      <button onclick="login()">🔓 Masuk Dashboard</button>
+    </div>
+  </div>
+
+  <div class="container hidden" id="app">
+    <header>
+      <div class="logo">
+        <div class="icon">🦖</div>
+        <div>
+          <h1>Ptero Auto Panel</h1>
+          <p>Auto Create Panel Pterodactyl via Website & Bot Discord</p>
+        </div>
+      </div>
+      <span class="badge demo hidden" id="badgeDemo">⚠ MODE DEMO</span>
+      <span class="badge live hidden" id="badgeLive">● TERHUBUNG KE PANEL</span>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><div class="num" id="statServers">0</div><div class="lbl">Total Server</div></div>
+      <div class="stat"><div class="num" id="statUsers">0</div><div class="lbl">Total User</div></div>
+      <div class="stat"><div class="num" id="statPanel" style="font-size:.9rem;padding-top:8px">-</div><div class="lbl">URL Panel</div></div>
+    </div>
+
+    <div class="grid">
+      <!-- CREATE PANEL -->
+      <div class="card">
+        <h2>🚀 Auto Create Panel</h2>
+        <label>Username</label>
+        <input id="username" placeholder="contoh: budi" />
+        <label>Paket Resource</label>
+        <select id="plan"></select>
+        <div class="error-msg" id="createErr"></div>
+        <button id="btnCreate" onclick="createPanel()">⚡ Buat Panel Sekarang</button>
+
+        <div class="result" id="result">
+          <h3>✅ Panel Berhasil Dibuat!</h3>
+          <div class="kv"><span class="k">🌐 Login</span><span class="v" id="rUrl"></span></div>
+          <div class="kv"><span class="k">👤 Username</span><span class="v copy" id="rUser" onclick="copyText(this)"></span></div>
+          <div class="kv"><span class="k">📧 Email</span><span class="v copy" id="rEmail" onclick="copyText(this)"></span></div>
+          <div class="kv"><span class="k">🔑 Password</span><span class="v copy" id="rPass" onclick="copyText(this)"></span></div>
+          <div class="kv"><span class="k">📦 Paket</span><span class="v" id="rPlan"></span></div>
+          <div class="kv"><span class="k">💾 RAM</span><span class="v" id="rRam"></span></div>
+          <div class="kv"><span class="k">⚙️ CPU</span><span class="v" id="rCpu"></span></div>
+          <div class="kv"><span class="k">💿 Disk</span><span class="v" id="rDisk"></span></div>
+          <p style="font-size:.72rem;color:var(--muted);margin-top:10px">💡 Klik nilai berwarna hijau untuk menyalin</p>
+        </div>
+      </div>
+
+      <!-- LISTS -->
+      <div class="card">
+        <div class="tabs">
+          <div class="tab active" id="tabServers" onclick="switchTab('servers')">📋 Server</div>
+          <div class="tab" id="tabUsers" onclick="switchTab('users')">👥 User</div>
+        </div>
+        <div id="listServers">
+          <table>
+            <thead><tr><th>ID</th><th>Nama</th><th>RAM</th><th></th></tr></thead>
+            <tbody id="tbodyServers"></tbody>
+          </table>
+        </div>
+        <div id="listUsers" class="hidden">
+          <table>
+            <thead><tr><th>ID</th><th>Username</th><th>Email</th><th></th></tr></thead>
+            <tbody id="tbodyUsers"></tbody>
+          </table>
+        </div>
+        <button class="ghost" onclick="refresh()">🔄 Refresh Data</button>
+      </div>
+    </div>
+
+    <footer>🦖 Ptero Auto Panel • Bot Discord + Website Dashboard • Jalankan di VPS dengan PM2</footer>
+  </div>
+
+  <div class="toast" id="toast">Disalin! 📋</div>
+
+<script>
+let TOKEN = null;
+
+async function api(path, opts = {}) {
+  opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+  if (TOKEN) opts.headers['x-auth-token'] = TOKEN;
+  const res = await fetch(path, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Request gagal');
+  return data;
+}
+
+async function login() {
+  const pass = document.getElementById('loginPass').value;
+  try {
+    const data = await api('/api/login', { method: 'POST', body: JSON.stringify({ password: pass }) });
+    TOKEN = data.token;
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    init();
+  } catch {
+    document.getElementById('loginErr').classList.add('show');
+  }
+}
+
+async function init() {
+  const st = await api('/api/status');
+  document.getElementById(st.demo ? 'badgeDemo' : 'badgeLive').classList.remove('hidden');
+  document.getElementById('statPanel').textContent = st.panelUrl;
+  const sel = document.getElementById('plan');
+  sel.innerHTML = Object.entries(st.plans)
+    .map(([k, v]) => `<option value="${k}">${k.toUpperCase()} — ${v.label}</option>`)
+    .join('');
+  refresh();
+}
+
+async function refresh() {
+  try {
+    const [sv, us] = await Promise.all([api('/api/servers'), api('/api/users')]);
+    document.getElementById('statServers').textContent = sv.servers.length;
+    document.getElementById('statUsers').textContent = us.users.length;
+    document.getElementById('tbodyServers').innerHTML = sv.servers.map(s =>
+      `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.ram || '-'}</td>
+       <td><button class="small danger" onclick="delServer(${s.id})">Hapus</button></td></tr>`
+    ).join('') || '<tr><td colspan="4" style="color:var(--muted)">Belum ada server</td></tr>';
+    document.getElementById('tbodyUsers').innerHTML = us.users.map(u =>
+      `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td>
+       <td><button class="small danger" onclick="delUser(${u.id})">Hapus</button></td></tr>`
+    ).join('') || '<tr><td colspan="4" style="color:var(--muted)">Belum ada user</td></tr>';
+  } catch (e) { console.error(e); }
+}
+
+async function createPanel() {
+  const btn = document.getElementById('btnCreate');
+  const err = document.getElementById('createErr');
+  err.classList.remove('show');
+  const username = document.getElementById('username').value.trim();
+  const plan = document.getElementById('plan').value;
+  if (!username) { err.textContent = 'Username wajib diisi!'; err.classList.add('show'); return; }
+
+  btn.disabled = true; btn.textContent = '⏳ Membuat panel...';
+  try {
+    const r = await api('/api/create-panel', { method: 'POST', body: JSON.stringify({ username, plan }) });
+    document.getElementById('rUrl').textContent = r.panelUrl;
+    document.getElementById('rUser').textContent = r.username;
+    document.getElementById('rEmail').textContent = r.email;
+    document.getElementById('rPass').textContent = r.password;
+    document.getElementById('rPlan').textContent = r.server.plan;
+    document.getElementById('rRam').textContent = r.server.ram;
+    document.getElementById('rCpu').textContent = r.server.cpu;
+    document.getElementById('rDisk').textContent = r.server.disk;
+    document.getElementById('result').classList.add('show');
+    refresh();
+  } catch (e) {
+    err.textContent = '❌ ' + e.message; err.classList.add('show');
+  }
+  btn.disabled = false; btn.textContent = '⚡ Buat Panel Sekarang';
+}
+
+async function delServer(id) {
+  if (!confirm('Hapus server ID ' + id + '?')) return;
+  try { await api('/api/servers/' + id, { method: 'DELETE' }); refresh(); toast('Server dihapus! 🗑️'); }
+  catch (e) { alert(e.message); }
+}
+async function delUser(id) {
+  if (!confirm('Hapus user ID ' + id + '?')) return;
+  try { await api('/api/users/' + id, { method: 'DELETE' }); refresh(); toast('User dihapus! 🗑️'); }
+  catch (e) { alert(e.message); }
+}
+
+function switchTab(t) {
+  document.getElementById('tabServers').classList.toggle('active', t === 'servers');
+  document.getElementById('tabUsers').classList.toggle('active', t === 'users');
+  document.getElementById('listServers').classList.toggle('hidden', t !== 'servers');
+  document.getElementById('listUsers').classList.toggle('hidden', t !== 'users');
+}
+
+function copyText(el) {
+  navigator.clipboard.writeText(el.textContent);
+  toast('Disalin! 📋');
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+</script>
+</body>
+</html>
