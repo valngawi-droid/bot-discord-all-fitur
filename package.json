@@ -1,0 +1,27 @@
+{
+  "name": "bot-discord-pterodactyl-panel",
+  "version": "1.0.0",
+  "description": "Bot Discord Auto Create Panel Pterodactyl + Website Dashboard (siap deploy di VPS)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "bot": "node src/bot.js",
+    "web": "node src/web/server.js",
+    "deploy-commands": "node src/deploy-commands.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "pterodactyl",
+    "auto-panel",
+    "vps"
+  ],
+  "author": "valngawi-droid",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
