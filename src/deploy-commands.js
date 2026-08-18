@@ -488,9 +488,9 @@ async function registerCommands(discordClient) {
     throw new Error("BOT_TOKEN/DISCORD_TOKEN dan CLIENT_ID wajib (atau bot harus sudah login)");
   }
   const rest = new REST({ version: "10" }).setToken(token);
-  console.log(`⏳ Mendaftarkan ${commands.length} slash commands (multi-server)...`);
+  console.log(`⏳ Mendaftarkan ${commands.length} slash commands (satu set, tidak dobel)...`);
   await rest.put(Routes.applicationCommands(clientId), { body: commands });
-  console.log("✅ Command global terdaftar");
+  console.log("✅ Command global terpasang");
 
   let guilds = [];
   if (discordClient?.guilds?.cache?.size) {
@@ -507,13 +507,13 @@ async function registerCommands(discordClient) {
   }
   for (const g of guilds) {
     try {
-      await rest.put(Routes.applicationGuildCommands(clientId, g.id), { body: commands });
-      console.log("   instant:", g.name || g.id);
+      await rest.put(Routes.applicationGuildCommands(clientId, g.id), { body: [] });
+      console.log("   hapus dobel di:", g.name || g.id);
     } catch (err) {
       console.warn("   skip", g.id, err.message);
     }
   }
-  console.log(`✅ Slash command siap (${guilds.length} server + global)`);
+  console.log("✅ Slash command siap — 1 set per nama command");
 }
 
 module.exports = { registerCommands, commands };
