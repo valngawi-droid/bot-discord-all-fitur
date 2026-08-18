@@ -318,6 +318,23 @@ const commands = [
     )
     .addSubcommand((s) =>
       s
+        .setName("banner")
+        .setDescription("Atur banner goodbye")
+        .addStringOption((o) =>
+          o
+            .setName("preset")
+            .setDescription("Preset banner")
+            .addChoices(
+              { name: "Aurora", value: "aurora" },
+              { name: "Dusk", value: "dusk" },
+              { name: "Royal", value: "royal" },
+              { name: "Matikan banner", value: "none" }
+            )
+        )
+        .addStringOption((o) => o.setName("url").setDescription("URL gambar kustom"))
+    )
+    .addSubcommand((s) =>
+      s
         .setName("warna")
         .setDescription("Warna embed (hex)")
         .addStringOption((o) => o.setName("hex").setDescription("Contoh ff8c42").setRequired(true))
@@ -472,19 +489,32 @@ const rest = new REST({ version: "10" }).setToken(process.env.BOT_TOKEN);
       console.error("❌ BOT_TOKEN dan CLIENT_ID wajib diisi di .env");
       process.exit(1);
     }
-    console.log(`⏳ Mendaftarkan ${commands.length} slash commands...`);
-    if (process.env.GUILD_ID) {
-      await rest.put(
-        Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-        { body: commands }
-      );
-      console.log("✅ Slash commands terdaftar di guild:", process.env.GUILD_ID);
-    } else {
-      await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
-        body: commands,
-      });
-      console.log("✅ Slash commands terdaftar secara global (butuh ±1 jam propagasi)");
+    console.log(`⏳ Mendaftarkan ${commands.length} slash commands (multi-server)...`);
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
+      body: commands,
+    });
+    console.log("✅ Command global terdaftar (bisa butuh ±1 jam di server baru)");
+
+    let guilds = [];
+    try {
+      guilds = await rest.get(Routes.userGuilds());
+    } catch {
+      guilds = [];
     }
+    if (process.env.GUILD_ID && !guilds.some((g) => g.id === process.env.GUILD_ID)) {
+      guilds.push({ id: process.env.GUILD_ID, name: process.env.GUILD_ID });
+    }
+    for (const g of guilds) {
+      try {
+        await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, g.id), {
+          body: commands,
+        });
+        console.log("   instant:", g.name || g.id);
+      } catch (err) {
+        console.warn("   skip", g.id, err.message);
+      }
+    }
+    console.log(`✅ Siap multi-server (${guilds.length} guild instant + global)`);
   } catch (err) {
     console.error("❌ Gagal daftar commands:", err);
     process.exit(1);

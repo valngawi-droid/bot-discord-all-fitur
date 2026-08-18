@@ -108,6 +108,8 @@
     }
     .nav-btn.active, .nav-btn:hover { background: rgba(167,139,250,.12); color: var(--text); }
     .nav-foot { margin-top: auto; padding: 12px; color: var(--muted); font-size: .7rem; }
+    .guild-box { padding: 4px 8px 14px; }
+    .guild-box select { font-size: .82rem; padding: 8px 10px; }
 
     main { padding: 28px 32px 80px; max-width: 1180px; }
     .top {
@@ -202,8 +204,12 @@
         <img src="/logo.png" alt="X Community" />
         <div>
           <strong>X Community</strong>
-          <span>Control center</span>
+          <span>Multi-server</span>
         </div>
+      </div>
+      <div class="guild-box">
+        <label>Server Discord</label>
+        <select id="guildSelect" onchange="switchGuild(this.value)"></select>
       </div>
       <button class="nav-btn active" data-page="home" onclick="page('home')">Ringkasan</button>
       <button class="nav-btn" data-page="welcome" onclick="page('welcome')">Welcome</button>
@@ -221,7 +227,7 @@
         <div class="top">
           <div>
             <h2>Ringkasan</h2>
-            <p>Kelola komunitas seperti dashboard Koya — tanpa sentuh command.</p>
+            <p>Satu bot untuk banyak server. Pilih server di kiri, atur terpisah.</p>
           </div>
           <div>
             <span class="pill off" id="botPill">Bot offline</span>
@@ -229,14 +235,17 @@
           </div>
         </div>
         <div class="stats">
-          <div class="stat"><b id="stMembers">0</b><span>Member</span></div>
+          <div class="stat"><b id="stGuilds">0</b><span>Total server</span></div>
+          <div class="stat"><b id="stMembers">0</b><span>Member server ini</span></div>
           <div class="stat"><b id="stStore">TUTUP</b><span>Status store</span></div>
           <div class="stat"><b id="stTickets">0</b><span>Ticket terbuka</span></div>
-          <div class="stat"><b id="stBotName">X Community</b><span>Nama bot</span></div>
         </div>
         <div class="grid">
           <div class="card">
-            <h3>Mulai cepat</h3>
+            <h3>Invite ke server lain</h3>
+            <p style="color:var(--muted);font-size:.88rem;margin-bottom:10px">Bot ini multi-server. Invite ke guild baru, lalu pilih namanya di sidebar.</p>
+            <a id="inviteLink" href="#" target="_blank" rel="noopener" class="btn sm" style="display:inline-block;text-decoration:none;width:auto">Salin / buka invite</a>
+            <h3 style="margin-top:22px">Mulai cepat</h3>
             <p style="color:var(--muted);font-size:.9rem;line-height:1.55">
               1. Isi channel welcome + pilih banner.<br/>
               2. Pasang panel ticket & take role.<br/>
@@ -486,8 +495,12 @@
             <strong>X Community</strong>
             <span style="color:var(--gold);font-size:.78rem;font-weight:700">TERKUNCI</span>
           </div>
-          <label>Nama bot (boleh diganti — jadi nickname di server)</label>
+          <label>Nama bot (boleh diganti — jadi nickname)</label>
           <input id="setBotName" maxlength="32" />
+          <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
+            <label class="switch"><input type="checkbox" id="setAllGuilds" checked /><i></i></label>
+            <span>Terapkan nickname ke semua server</span>
+          </div>
           <label>Status aktivitas</label>
           <input id="setActivity" />
           <label>Tipe aktivitas</label>
@@ -507,11 +520,13 @@
 <script>
 let TOKEN = null;
 let STATE = {};
+let GUILD = localStorage.getItem('xc-guild') || '';
 const WEB_NAME = 'X Community';
 
 async function api(path, opts = {}) {
   opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
   if (TOKEN) opts.headers['x-auth-token'] = TOKEN;
+  if (GUILD) opts.headers['x-guild-id'] = GUILD;
   const res = await fetch(path, opts);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Gagal');
@@ -575,19 +590,42 @@ function updatePreview() {
   document.getElementById('pvMsg').textContent = document.getElementById('welMsg').value || w.message || '';
 }
 
+function fillGuildSelect() {
+  const sel = document.getElementById('guildSelect');
+  const list = STATE.guilds || [];
+  if (!GUILD) GUILD = STATE.guildId || list[0]?.id || '';
+  sel.innerHTML = list.length
+    ? list.map(g => `<option value="${g.id}" ${g.id===GUILD?'selected':''}>${g.name} · ${g.memberCount || 0}</option>`).join('')
+    : '<option value="">Bot belum join server</option>';
+}
+
+async function switchGuild(id) {
+  GUILD = id;
+  localStorage.setItem('xc-guild', id);
+  await boot();
+}
+
 async function boot() {
   STATE = await api('/api/bootstrap');
+  if (!GUILD && STATE.guildId) {
+    GUILD = STATE.guildId;
+    localStorage.setItem('xc-guild', GUILD);
+  }
   const g = STATE.guild;
   const s = STATE.settings || {};
+  fillGuildSelect();
   document.getElementById('botPill').className = 'pill ' + (STATE.botOnline ? 'on' : 'off');
   document.getElementById('botPill').textContent = STATE.botOnline ? 'Bot online' : 'Bot offline';
-  document.getElementById('guildPill').textContent = g?.name || 'Hubungkan bot + isi GUILD_ID';
+  document.getElementById('guildPill').textContent = g?.name || 'Invite bot ke server dulu';
+  document.getElementById('stGuilds').textContent = (STATE.guilds || []).length;
   document.getElementById('stMembers').textContent = g?.memberCount ?? 0;
   document.getElementById('stStore').textContent = STATE.store?.open ? 'BUKA' : 'TUTUP';
   document.getElementById('stTickets').textContent = (STATE.tickets || []).length;
-  document.getElementById('stBotName').textContent = s.botName || WEB_NAME;
   document.getElementById('homeLevels').innerHTML = (STATE.levels || []).map(l =>
     `#${l.rank} · Lv ${l.level} · ${l.xp} XP`).join('<br/>') || 'Belum ada XP';
+  const inv = document.getElementById('inviteLink');
+  if (STATE.inviteUrl) { inv.href = STATE.inviteUrl; inv.style.display = 'inline-block'; }
+  else inv.style.display = 'none';
 
   fillSelects();
   fillWelcome();

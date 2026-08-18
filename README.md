@@ -4,6 +4,8 @@ Bot Discord + **website dashboard** untuk komunitas. Setup semuanya dari web —
 
 Nama website **X Community** terkunci. Yang boleh diganti hanya **nama bot**.
 
+Bot **multi-server**: invite ke banyak guild, tiap server punya store / welcome / ticket / XP sendiri. Di dashboard pilih server dari sidebar.
+
 ## Fitur
 
 ### Dashboard website
@@ -63,7 +65,8 @@ Role bot harus **di atas** role yang dibagikan (take role / autorole / verify).
 |---|---|
 | `BOT_TOKEN` | Token bot |
 | `CLIENT_ID` | Application ID |
-| `GUILD_ID` | ID server (wajib agar dashboard tahu channel/role) |
+| `CLIENT_ID` | Application ID (wajib untuk invite + slash command) |
+| `GUILD_ID` | Opsional. Fallback dashboard saja — bot tetap multi-server |
 | `OWNER_IDS` | ID owner |
 | `ADMIN_ROLE_IDS` | Role admin command |
 | `WEB_PORT` | Default 3000 |

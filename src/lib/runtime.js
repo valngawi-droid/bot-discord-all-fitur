@@ -13,6 +13,23 @@ function isReady() {
   return Boolean(client && client.isReady());
 }
 
+function listGuilds() {
+  if (!isReady()) return [];
+  return [...client.guilds.cache.values()]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((g) => ({
+      id: g.id,
+      name: g.name,
+      icon: g.iconURL({ size: 64 }),
+      memberCount: g.memberCount,
+    }));
+}
+
+function firstGuildId() {
+  const list = listGuilds();
+  return list[0]?.id || process.env.GUILD_ID || null;
+}
+
 async function getGuildSnapshot(guildId) {
   if (!isReady() || !guildId) return null;
   try {

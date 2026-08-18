@@ -66,6 +66,13 @@ function attachEvents(client) {
     }
   });
 
+  client.on("guildCreate", (guild) => {
+    console.log(`➕ Masuk server: ${guild.name} (${guild.id}) · total ${client.guilds.cache.size}`);
+  });
+  client.on("guildDelete", (guild) => {
+    console.log(`➖ Keluar server: ${guild.name} (${guild.id}) · total ${client.guilds.cache.size}`);
+  });
+
   client.on("guildMemberAdd", (member) => {
     welcome.handleJoin(member).catch((err) => console.error("welcome:", err.message));
     community.handleJoinExtras(member).catch((err) => console.error("autorole:", err.message));
