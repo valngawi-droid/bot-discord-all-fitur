@@ -12,6 +12,7 @@ const COLORS = {
   orange: 0xff8c42,
   pink: 0xff6b9d,
   dark: 0x141926,
+  violet: 0xa78bfa,
 };
 
 function rupiah(n) {

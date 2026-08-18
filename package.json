@@ -1,7 +1,7 @@
 {
-  "name": "bot-discord-all-fitur",
-  "version": "2.0.0",
-  "description": "Bot Discord all-fitur: Auto Panel Pterodactyl, Store buka/tutup, Ticket, Take Role, Welcome/Goodbye, Games + Website Dashboard",
+  "name": "x-community",
+  "version": "3.0.0",
+  "description": "X Community — Bot Discord + dashboard: store, ticket, take role, welcome banner, komunitas, games",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -12,17 +12,16 @@
   "keywords": [
     "discord",
     "bot",
-    "pterodactyl",
+    "x-community",
     "store",
     "ticket",
     "welcome",
-    "games",
-    "vps"
+    "community",
+    "games"
   ],
   "author": "valngawi-droid",
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.7.9",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2"

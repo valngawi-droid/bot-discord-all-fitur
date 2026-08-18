@@ -1,5 +1,5 @@
 // ==========================================
-// BOT DISCORD — Panel + Store + Ticket + Game
+// X Community — Discord bot
 // ==========================================
 require("dotenv").config();
 const {
@@ -9,7 +9,6 @@ const {
   ActivityType,
 } = require("discord.js");
 
-const ptero = require("./pterodactyl");
 const store = require("./features/store");
 const tickets = require("./features/tickets");
 const takerole = require("./features/takerole");
@@ -17,9 +16,15 @@ const welcome = require("./features/welcome");
 const games = require("./features/games");
 const economy = require("./features/economy");
 const utility = require("./features/utility");
-const panel = require("./features/panel");
+const community = require("./features/community");
+const runtime = require("./lib/runtime");
+const settings = require("./lib/settings");
 
-const BASE_INTENTS = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages];
+const BASE_INTENTS = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMessageReactions,
+];
 const PRIVILEGED_INTENTS = [
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.MessageContent,
@@ -33,48 +38,66 @@ function createClient(intents) {
       Partials.GuildMember,
       Partials.Message,
       Partials.User,
+      Partials.Reaction,
     ],
   });
 }
 
+function activityType(name) {
+  return ActivityType[name] ?? ActivityType.Watching;
+}
+
 function attachEvents(client) {
+  runtime.setClient(client);
+
   client.once("ready", () => {
-    console.log(`✅ Bot login sebagai ${client.user.tag}`);
-    if (ptero.DEMO_MODE) {
-      console.log("⚠️  MODE DEMO — panel belum disambungkan, data hanya simulasi");
-    }
-    const spin = [
-      { name: "Store • Ticket • Games", type: ActivityType.Watching },
-      { name: "/help | All Fitur", type: ActivityType.Playing },
-      { name: `${client.guilds.cache.size} server`, type: ActivityType.Watching },
-    ];
-    let i = 0;
+    console.log(`✅ X Community login sebagai ${client.user.tag}`);
     const apply = () => {
-      const a = spin[i % spin.length];
-      client.user.setActivity(a.name, { type: a.type });
-      i += 1;
+      const s = settings.get();
+      client.user.setActivity(s.activity || s.botName, { type: activityType(s.activityType) });
     };
     apply();
-    setInterval(apply, 25000);
+    setInterval(apply, 30000).unref?.();
+    community.resumeGiveaways(client);
+    const nick = settings.get().botName;
+    if (nick) {
+      runtime.applyBotName(nick).catch(() => {});
+    }
   });
 
   client.on("guildMemberAdd", (member) => {
     welcome.handleJoin(member).catch((err) => console.error("welcome:", err.message));
+    community.handleJoinExtras(member).catch((err) => console.error("autorole:", err.message));
   });
 
   client.on("guildMemberRemove", (member) => {
     welcome.handleLeave(member).catch((err) => console.error("goodbye:", err.message));
+    community.handleLeaveExtras(member).catch(() => {});
   });
 
   client.on("messageCreate", (message) => {
     games.handleMessage(message).catch(() => {});
+    if (message.guild && !message.author.bot) {
+      community.handleMessage(message).catch(() => {});
+    }
+  });
+
+  client.on("messageDelete", (message) => {
+    community.handleMessageDelete(message).catch(() => {});
+  });
+
+  client.on("messageUpdate", (oldM, newM) => {
+    community.handleMessageEdit(oldM, newM).catch(() => {});
+  });
+
+  client.on("messageReactionAdd", (reaction, user) => {
+    community.handleStar(reaction, user).catch(() => {});
   });
 
   client.on("interactionCreate", async (interaction) => {
     try {
       if (interaction.isAutocomplete()) {
-        const focusedCmd = interaction.commandName;
-        if (focusedCmd === "buy" || focusedCmd === "produk") {
+        if (interaction.commandName === "buy" || interaction.commandName === "produk") {
           return store.autocompleteProduk(interaction);
         }
         return;
@@ -87,6 +110,9 @@ function attachEvents(client) {
         if (id.startsWith("takerole:")) return takerole.handleButton(interaction);
         if (id.startsWith("ttt_") || id.startsWith("game_")) return games.handleButton(interaction);
         if (id.startsWith("poll:")) return utility.handlePollButton(interaction);
+        if (id === "sug_up" || id === "sug_down") return community.handleSuggestButton(interaction);
+        if (id === "gw_join") return community.handleGiveawayButton(interaction);
+        if (id === "verify_ok") return community.handleVerifyButton(interaction);
         return;
       }
 
@@ -121,6 +147,14 @@ function attachEvents(client) {
       if (cmd === "welcome") return welcome.handleWelcome(interaction);
       if (cmd === "goodbye") return welcome.handleGoodbye(interaction);
 
+      if (cmd === "rank") return community.handleRank(interaction);
+      if (cmd === "levels") return community.handleLevels(interaction);
+      if (cmd === "suggest" || cmd === "saran") return community.handleSuggest(interaction);
+      if (cmd === "giveaway") return community.handleGiveaway(interaction);
+      if (cmd === "afk") return community.handleAfk(interaction);
+      if (cmd === "announce") return community.handleAnnounce(interaction);
+      if (cmd === "verify") return community.handleVerify(interaction);
+
       if (
         [
           "tictactoe",
@@ -146,10 +180,6 @@ function attachEvents(client) {
       if (cmd === "transfer") return economy.handleTransfer(interaction);
       if (cmd === "leaderboard") return economy.handleLeaderboard(interaction);
       if (cmd === "givekoin") return economy.handleGiveKoin(interaction);
-
-      if (["createpanel", "deletepanel", "deleteuser", "listserver", "listuser"].includes(cmd)) {
-        return panel.handle(interaction);
-      }
     } catch (err) {
       console.error("❌ Error:", err.response?.data || err.message);
       const msg =
@@ -189,7 +219,6 @@ client.login(process.env.BOT_TOKEN).catch((err) => {
   if (/intent/i.test(text)) {
     console.warn("⚠️  Privileged intents belum diaktifkan di Developer Portal.");
     console.warn("    Aktifkan SERVER MEMBERS INTENT + MESSAGE CONTENT INTENT");
-    console.warn("    agar welcome/goodbye & tebak ketik berjalan penuh.");
     console.warn("    Mencoba login ulang tanpa privileged intents...");
     client.destroy();
     client = createClient(BASE_INTENTS);

@@ -3,432 +3,832 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🦖 Ptero Auto Panel — Dashboard</title>
+  <title>X Community</title>
+  <link rel="icon" href="/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@360;480;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
     :root {
-      --bg: #0b0e14;
-      --card: #141926;
-      --card2: #1b2233;
-      --accent: #00d9a5;
-      --accent2: #5865f2;
-      --text: #e6ebf5;
-      --muted: #8b94a8;
-      --danger: #ff5c6c;
+      --bg: #07060c;
+      --bg2: #0e0c16;
+      --card: rgba(22, 18, 34, .78);
+      --line: rgba(255,255,255,.08);
+      --text: #f6f1ff;
+      --muted: #9a92b3;
+      --violet: #b794f6;
+      --pink: #f0abfc;
+      --gold: #f5c16c;
+      --green: #4ade80;
+      --red: #fb7185;
+      --shadow: 0 24px 80px rgba(0,0,0,.45);
     }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: Outfit, system-ui, sans-serif; }
     body::before {
-      content: ''; position: fixed; inset: 0; z-index: -1;
+      content: ""; position: fixed; inset: 0; z-index: -2;
       background:
-        radial-gradient(600px circle at 15% 10%, rgba(0,217,165,.12), transparent 50%),
-        radial-gradient(700px circle at 85% 20%, rgba(88,101,242,.14), transparent 50%),
-        radial-gradient(500px circle at 50% 90%, rgba(0,217,165,.07), transparent 50%);
+        radial-gradient(900px 500px at 10% -10%, rgba(167,139,250,.28), transparent 55%),
+        radial-gradient(800px 480px at 100% 0%, rgba(240,171,252,.16), transparent 50%),
+        radial-gradient(700px 400px at 70% 110%, rgba(245,193,108,.1), transparent 50%),
+        var(--bg);
     }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
-
-    header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
-    .logo { display: flex; align-items: center; gap: 12px; }
-    .logo .icon { width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: grid; place-items: center; font-size: 24px; }
-    .logo h1 { font-size: 1.3rem; }
-    .logo p { color: var(--muted); font-size: .8rem; }
-    .badge { padding: 4px 12px; border-radius: 999px; font-size: .75rem; font-weight: 600; }
-    .badge.demo { background: rgba(255,196,0,.15); color: #ffc400; border: 1px solid rgba(255,196,0,.35); }
-    .badge.live { background: rgba(0,217,165,.15); color: var(--accent); border: 1px solid rgba(0,217,165,.35); }
-
-    .card { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 24px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
-
-    h2 { font-size: 1.05rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    label { display: block; font-size: .8rem; color: var(--muted); margin: 14px 0 6px; }
-    input, select {
-      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1);
-      background: var(--card2); color: var(--text); font-size: .95rem; outline: none; transition: border .2s;
+    body::after {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .18;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
-    input:focus, select:focus { border-color: var(--accent); }
-    button {
-      cursor: pointer; border: none; border-radius: 10px; padding: 12px 20px; font-weight: 700; font-size: .95rem;
-      background: linear-gradient(135deg, var(--accent), #00b88c); color: #04261d; transition: transform .15s, opacity .2s;
-      width: 100%; margin-top: 18px;
-    }
-    button:hover { transform: translateY(-1px); opacity: .92; }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    button.small { width: auto; padding: 6px 12px; font-size: .75rem; margin: 0; }
-    button.danger { background: linear-gradient(135deg, var(--danger), #d63a4a); color: #fff; }
-    button.ghost { background: var(--card2); color: var(--text); border: 1px solid rgba(255,255,255,.12); }
-
-    .result { margin-top: 18px; background: var(--card2); border: 1px solid rgba(0,217,165,.3); border-radius: 12px; padding: 18px; display: none; }
-    .result.show { display: block; animation: pop .25s ease; }
-    @keyframes pop { from { transform: scale(.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .result h3 { color: var(--accent); font-size: .95rem; margin-bottom: 10px; }
-    .kv { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,.07); font-size: .85rem; }
-    .kv:last-child { border-bottom: none; }
-    .kv .k { color: var(--muted); }
-    .kv .v { font-family: 'Cascadia Code', monospace; word-break: break-all; text-align: right; }
-    .kv .v.copy { cursor: pointer; color: var(--accent); }
-
-    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-    th { text-align: left; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
-    td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.05); }
-    tr:hover td { background: rgba(255,255,255,.02); }
-
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab { padding: 8px 16px; border-radius: 999px; font-size: .82rem; cursor: pointer; background: var(--card2); color: var(--muted); border: 1px solid transparent; }
-    .tab.active { color: var(--accent); border-color: rgba(0,217,165,.4); background: rgba(0,217,165,.08); }
-
-    .error-msg { color: var(--danger); font-size: .85rem; margin-top: 12px; display: none; }
-    .error-msg.show { display: block; }
-
-    /* Login overlay */
-    #loginOverlay {
-      position: fixed; inset: 0; background: rgba(5,8,14,.92); backdrop-filter: blur(6px);
-      display: grid; place-items: center; z-index: 100;
-    }
-    #loginOverlay .card { width: 100%; max-width: 380px; text-align: center; }
-    #loginOverlay .icon-big { font-size: 46px; margin-bottom: 8px; }
+    button, input, select, textarea { font-family: inherit; color: inherit; }
     .hidden { display: none !important; }
 
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
-    .stat { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 18px; text-align: center; }
-    .stat .num { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
-    .stat .lbl { font-size: .75rem; color: var(--muted); margin-top: 4px; }
-    @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 500px) { .stats { grid-template-columns: 1fr; } }
-    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
-    .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; }
-    .pill.on { background: rgba(0,217,165,.15); color: var(--accent); }
-    .pill.off { background: rgba(255,92,108,.15); color: var(--danger); }
+    /* LOGIN */
+    #login {
+      min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    }
+    .login-card {
+      width: min(440px, 100%);
+      background: linear-gradient(180deg, rgba(28,22,44,.9), rgba(14,12,22,.92));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 40px 36px 32px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: ""; position: absolute; inset: 0 auto auto 0; width: 100%; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--violet), var(--gold), transparent);
+    }
+    .brand-mark {
+      width: 84px; height: 84px; margin: 0 auto 16px; border-radius: 24px;
+      background: url('/logo.png') center/cover, linear-gradient(135deg, #2a1848, #12081c);
+      box-shadow: 0 12px 40px rgba(167,139,250,.35);
+    }
+    .login-card h1 {
+      font-family: Syne, sans-serif; font-size: 2rem; letter-spacing: -.03em;
+      background: linear-gradient(120deg, #fff, var(--violet) 55%, var(--gold));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .login-card p { color: var(--muted); margin: 8px 0 26px; font-size: .95rem; }
+    label { display: block; text-align: left; font-size: .78rem; color: var(--muted); margin: 12px 0 6px; letter-spacing: .04em; text-transform: uppercase; }
+    input, select, textarea {
+      width: 100%; background: #100e18; border: 1px solid var(--line); border-radius: 12px;
+      padding: 12px 14px; outline: none; transition: border .2s, box-shadow .2s;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--violet); box-shadow: 0 0 0 4px rgba(167,139,250,.15); }
+    .btn {
+      cursor: pointer; border: 0; border-radius: 12px; padding: 12px 18px; font-weight: 700;
+      background: linear-gradient(135deg, #c4b5fd, #a78bfa 40%, #f0abfc); color: #1a1028;
+      transition: transform .15s, filter .15s; width: 100%;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    .btn.danger { background: linear-gradient(135deg, #fb7185, #e11d48); color: #fff; }
+    .btn.gold { background: linear-gradient(135deg, #fde68a, #f5c16c); color: #2a1c06; }
+    .btn.sm { width: auto; padding: 7px 12px; font-size: .78rem; }
+    .err { color: var(--red); font-size: .82rem; margin-top: 10px; display: none; }
+    .err.show { display: block; }
 
-    footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 40px; }
+    /* APP SHELL */
+    #app { min-height: 100vh; display: grid; grid-template-columns: 250px 1fr; }
+    aside {
+      position: sticky; top: 0; height: 100vh; padding: 22px 14px;
+      background: rgba(10,8,16,.72); border-right: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .side-brand { display: flex; align-items: center; gap: 12px; padding: 6px 10px 18px; }
+    .side-brand img { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; }
+    .side-brand strong { font-family: Syne, sans-serif; font-size: 1.05rem; display: block; }
+    .side-brand span { color: var(--muted); font-size: .72rem; }
+    .nav-btn {
+      text-align: left; background: transparent; border: 0; color: var(--muted);
+      padding: 10px 12px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: .92rem;
+    }
+    .nav-btn.active, .nav-btn:hover { background: rgba(167,139,250,.12); color: var(--text); }
+    .nav-foot { margin-top: auto; padding: 12px; color: var(--muted); font-size: .7rem; }
+
+    main { padding: 28px 32px 80px; max-width: 1180px; }
+    .top {
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 26px; flex-wrap: wrap;
+    }
+    .top h2 { font-family: Syne, sans-serif; font-size: 1.7rem; letter-spacing: -.03em; }
+    .top p { color: var(--muted); font-size: .9rem; margin-top: 4px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; border: 1px solid var(--line); }
+    .pill.on { color: var(--green); border-color: rgba(74,222,128,.3); background: rgba(74,222,128,.08); }
+    .pill.off { color: var(--red); border-color: rgba(251,113,133,.3); background: rgba(251,113,133,.08); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat {
+      background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px;
+      backdrop-filter: blur(10px);
+    }
+    .stat b { display: block; font-family: Syne, sans-serif; font-size: 1.4rem; }
+    .stat span { color: var(--muted); font-size: .75rem; }
+
+    .grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px;
+      backdrop-filter: blur(12px);
+    }
+    .card h3 { font-family: Syne, sans-serif; font-size: 1.05rem; margin-bottom: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .actions .btn { width: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 10px; }
+    th { text-align: left; color: var(--muted); font-weight: 600; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+    td { padding: 9px 6px; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .switch { position: relative; width: 44px; height: 24px; display: inline-block; }
+    .switch input { display: none; }
+    .switch i { position: absolute; inset: 0; background: #2a2438; border-radius: 99px; transition: .2s; }
+    .switch i::after { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+    .switch input:checked + i { background: linear-gradient(90deg, var(--violet), var(--pink)); }
+    .switch input:checked + i::after { transform: translateX(20px); }
+
+    .banner-preview {
+      position: relative; border-radius: 16px; overflow: hidden; min-height: 180px;
+      background: #12081c center/cover; border: 1px solid var(--line);
+    }
+    .banner-preview .veil { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,6,14,.75), rgba(8,6,14,.2)); }
+    .banner-preview .copy { position: relative; padding: 28px 24px; }
+    .banner-preview h4 { font-family: Syne, sans-serif; font-size: 1.25rem; }
+    .banner-preview p { color: #ddd6fe; font-size: .88rem; margin-top: 6px; max-width: 36ch; }
+    .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+    .preset {
+      height: 64px; border-radius: 10px; border: 2px solid transparent; background-size: cover; background-position: center;
+      cursor: pointer;
+    }
+    .preset.active { border-color: var(--gold); }
+
+    .locked {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      background: #100e18; border: 1px dashed rgba(245,193,108,.35); border-radius: 12px; padding: 12px 14px;
+    }
     .toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-      background: var(--accent); color: #04261d; padding: 10px 22px; border-radius: 999px; font-weight: 700;
-      font-size: .85rem; transition: transform .3s; z-index: 200;
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #efe7ff; color: #1c1230; padding: 10px 18px; border-radius: 999px; font-weight: 700;
+      font-size: .85rem; transition: .3s; z-index: 50;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 980px) {
+      #app { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; flex-direction: row; flex-wrap: wrap; }
+      .stats, .grid, .grid-2, .row { grid-template-columns: 1fr; }
+      main { padding: 18px 14px 70px; }
+    }
   </style>
 </head>
 <body>
-
-  <!-- LOGIN -->
-  <div id="loginOverlay">
-    <div class="card">
-      <div class="icon-big">🦖</div>
-      <h2 style="justify-content:center">All Fitur Dashboard</h2>
-      <p style="color:var(--muted);font-size:.85rem">Masukkan password admin untuk lanjut</p>
-      <label style="text-align:left">Password</label>
-      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
-      <div class="error-msg" id="loginErr">Password salah!</div>
-      <button onclick="login()">🔓 Masuk Dashboard</button>
+  <div id="login">
+    <div class="login-card">
+      <div class="brand-mark"></div>
+      <h1>X Community</h1>
+      <p>Dashboard komunitas Discord. Semua setup di satu tempat.</p>
+      <label>Password admin</label>
+      <input id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+      <div class="err" id="loginErr">Password salah</div>
+      <div style="height:16px"></div>
+      <button class="btn" onclick="login()">Masuk dashboard</button>
     </div>
   </div>
 
-  <div class="container hidden" id="app">
-    <header>
-      <div class="logo">
-        <div class="icon">🦖</div>
+  <div id="app" class="hidden">
+    <aside>
+      <div class="side-brand">
+        <img src="/logo.png" alt="X Community" />
         <div>
-          <h1>All Fitur Dashboard</h1>
-          <p>Panel Pterodactyl · Store · Ticket · Welcome · Games</p>
+          <strong>X Community</strong>
+          <span>Control center</span>
         </div>
       </div>
-      <span class="badge demo hidden" id="badgeDemo">⚠ MODE DEMO</span>
-      <span class="badge live hidden" id="badgeLive">● TERHUBUNG KE PANEL</span>
-    </header>
+      <button class="nav-btn active" data-page="home" onclick="page('home')">Ringkasan</button>
+      <button class="nav-btn" data-page="welcome" onclick="page('welcome')">Welcome</button>
+      <button class="nav-btn" data-page="store" onclick="page('store')">Store</button>
+      <button class="nav-btn" data-page="ticket" onclick="page('ticket')">Ticket</button>
+      <button class="nav-btn" data-page="roles" onclick="page('roles')">Take Role</button>
+      <button class="nav-btn" data-page="community" onclick="page('community')">Komunitas</button>
+      <button class="nav-btn" data-page="games" onclick="page('games')">Game</button>
+      <button class="nav-btn" data-page="settings" onclick="page('settings')">Pengaturan</button>
+      <div class="nav-foot">© X Community · nama website terkunci</div>
+    </aside>
 
-    <div class="stats">
-      <div class="stat"><div class="num" id="statServers">0</div><div class="lbl">Total Server</div></div>
-      <div class="stat"><div class="num" id="statUsers">0</div><div class="lbl">Total User</div></div>
-      <div class="stat"><div class="num" id="statStore" style="font-size:1.05rem;padding-top:6px">—</div><div class="lbl">Status Store</div></div>
-      <div class="stat"><div class="num" id="statPanel" style="font-size:.9rem;padding-top:8px">-</div><div class="lbl">URL Panel</div></div>
-    </div>
-
-    <div class="grid">
-      <!-- CREATE PANEL -->
-      <div class="card">
-        <h2>🚀 Auto Create Panel</h2>
-        <label>Username</label>
-        <input id="username" placeholder="contoh: budi" />
-        <label>Paket Resource</label>
-        <select id="plan"></select>
-        <div class="error-msg" id="createErr"></div>
-        <button id="btnCreate" onclick="createPanel()">⚡ Buat Panel Sekarang</button>
-
-        <div class="result" id="result">
-          <h3>✅ Panel Berhasil Dibuat!</h3>
-          <div class="kv"><span class="k">🌐 Login</span><span class="v" id="rUrl"></span></div>
-          <div class="kv"><span class="k">👤 Username</span><span class="v copy" id="rUser" onclick="copyText(this)"></span></div>
-          <div class="kv"><span class="k">📧 Email</span><span class="v copy" id="rEmail" onclick="copyText(this)"></span></div>
-          <div class="kv"><span class="k">🔑 Password</span><span class="v copy" id="rPass" onclick="copyText(this)"></span></div>
-          <div class="kv"><span class="k">📦 Paket</span><span class="v" id="rPlan"></span></div>
-          <div class="kv"><span class="k">💾 RAM</span><span class="v" id="rRam"></span></div>
-          <div class="kv"><span class="k">⚙️ CPU</span><span class="v" id="rCpu"></span></div>
-          <div class="kv"><span class="k">💿 Disk</span><span class="v" id="rDisk"></span></div>
-          <p style="font-size:.72rem;color:var(--muted);margin-top:10px">💡 Klik nilai berwarna hijau untuk menyalin</p>
+    <main>
+      <section id="pg-home">
+        <div class="top">
+          <div>
+            <h2>Ringkasan</h2>
+            <p>Kelola komunitas seperti dashboard Koya — tanpa sentuh command.</p>
+          </div>
+          <div>
+            <span class="pill off" id="botPill">Bot offline</span>
+            <span class="pill" id="guildPill">Server</span>
+          </div>
         </div>
-      </div>
+        <div class="stats">
+          <div class="stat"><b id="stMembers">0</b><span>Member</span></div>
+          <div class="stat"><b id="stStore">TUTUP</b><span>Status store</span></div>
+          <div class="stat"><b id="stTickets">0</b><span>Ticket terbuka</span></div>
+          <div class="stat"><b id="stBotName">X Community</b><span>Nama bot</span></div>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h3>Mulai cepat</h3>
+            <p style="color:var(--muted);font-size:.9rem;line-height:1.55">
+              1. Isi channel welcome + pilih banner.<br/>
+              2. Pasang panel ticket & take role.<br/>
+              3. Aktifkan XP, autorole, dan saran.<br/>
+              4. Buka store kalau toko sudah siap.
+            </p>
+            <div class="actions">
+              <button class="btn sm" onclick="page('welcome')">Atur welcome</button>
+              <button class="btn ghost sm" onclick="page('community')">Fitur komunitas</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Top XP</h3>
+            <div id="homeLevels" style="color:var(--muted);font-size:.88rem">Belum ada data</div>
+          </div>
+        </div>
+      </section>
 
-      <!-- LISTS -->
-      <div class="card">
-        <div class="tabs">
-          <div class="tab active" id="tabServers" onclick="switchTab('servers')">📋 Server</div>
-          <div class="tab" id="tabUsers" onclick="switchTab('users')">👥 User</div>
+      <section id="pg-welcome" class="hidden">
+        <div class="top"><div><h2>Welcome & Goodbye</h2><p>Banner, pesan, channel — semuanya dari sini.</p></div></div>
+        <div class="grid">
+          <div class="card">
+            <h3>Preview banner</h3>
+            <div class="banner-preview" id="welPreview">
+              <div class="veil"></div>
+              <div class="copy">
+                <h4 id="pvTitle">Selamat Datang!</h4>
+                <p id="pvMsg">Halo @member, selamat datang di server.</p>
+              </div>
+            </div>
+            <div class="presets" id="welPresets"></div>
+            <label>URL banner kustom (opsional)</label>
+            <input id="welUrl" placeholder="https://...jpg" />
+            <div class="row">
+              <div>
+                <label>Judul</label>
+                <input id="welTitle" />
+              </div>
+              <div>
+                <label>Warna hex</label>
+                <input id="welColor" placeholder="a78bfa" />
+              </div>
+            </div>
+            <label>Pesan</label>
+            <textarea id="welMsg"></textarea>
+            <p style="color:var(--muted);font-size:.75rem;margin-top:6px">{user} {user.mention} {server} {membercount}</p>
+            <div class="row">
+              <div>
+                <label>Channel welcome</label>
+                <select id="welCh"></select>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:10px;padding-bottom:8px">
+                <label class="switch"><input type="checkbox" id="welOn" /><i></i></label>
+                <span>Aktif</span>
+                <label class="switch"><input type="checkbox" id="welMention" /><i></i></label>
+                <span>Mention</span>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn" onclick="saveWelcome('welcome')">Simpan welcome</button>
+              <button class="btn ghost" onclick="testWelcome('welcome')">Kirim tes</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Goodbye</h3>
+            <label>Channel goodbye</label>
+            <select id="byeCh"></select>
+            <label>Judul</label>
+            <input id="byeTitle" />
+            <label>Pesan</label>
+            <textarea id="byeMsg"></textarea>
+            <div class="presets" id="byePresets"></div>
+            <label>URL banner kustom</label>
+            <input id="byeUrl" placeholder="https://...jpg" />
+            <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+              <label class="switch"><input type="checkbox" id="byeOn" /><i></i></label>
+              <span>Aktifkan goodbye</span>
+            </div>
+            <div class="actions">
+              <button class="btn gold" onclick="saveWelcome('goodbye')">Simpan goodbye</button>
+              <button class="btn ghost" onclick="testWelcome('goodbye')">Kirim tes</button>
+            </div>
+          </div>
         </div>
-        <div id="listServers">
-          <table>
-            <thead><tr><th>ID</th><th>Nama</th><th>RAM</th><th></th></tr></thead>
-            <tbody id="tbodyServers"></tbody>
-          </table>
-        </div>
-        <div id="listUsers" class="hidden">
-          <table>
-            <thead><tr><th>ID</th><th>Username</th><th>Email</th><th></th></tr></thead>
-            <tbody id="tbodyUsers"></tbody>
-          </table>
-        </div>
-        <button class="ghost" onclick="refresh()">🔄 Refresh Data</button>
-      </div>
-    </div>
+      </section>
 
-    <footer>🦖 Ptero Auto Panel • Bot Discord + Website Dashboard • Jalankan di VPS dengan PM2</footer>
+      <section id="pg-store" class="hidden">
+        <div class="top"><div><h2>Store</h2><p>Buka/tutup, produk, payment, tanpa slash command.</p></div>
+          <button class="btn sm" id="btnStoreToggle" onclick="toggleStore()">Buka store</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Pengaturan toko</h3>
+            <label>Nama toko</label>
+            <input id="storeName" />
+            <div class="row">
+              <div><label>Jam buka</label><input id="storeOpen" /></div>
+              <div><label>Jam tutup</label><input id="storeClose" /></div>
+            </div>
+            <label>Channel pengumuman</label>
+            <select id="storeCh"></select>
+            <label>Kategori ticket</label>
+            <select id="storeCat"></select>
+            <label>Role staff</label>
+            <select id="storeStaff"></select>
+            <div class="actions"><button class="btn" onclick="saveStore()">Simpan</button></div>
+          </div>
+          <div class="card">
+            <h3>Produk</h3>
+            <div class="row">
+              <div><label>Nama</label><input id="prodName" /></div>
+              <div><label>Harga</label><input id="prodPrice" type="number" /></div>
+            </div>
+            <div class="row">
+              <div><label>Stok (-1 ∞)</label><input id="prodStock" type="number" value="-1" /></div>
+              <div><label>Deskripsi</label><input id="prodDesc" /></div>
+            </div>
+            <div class="actions"><button class="btn sm" onclick="addProduct()">Tambah</button></div>
+            <table><thead><tr><th>Nama</th><th>Harga</th><th></th></tr></thead><tbody id="tbodyProducts"></tbody></table>
+            <h3 style="margin-top:22px">Payment</h3>
+            <div class="row">
+              <div><label>Metode</label><input id="payMethod" /></div>
+              <div><label>Nomor</label><input id="payNumber" /></div>
+            </div>
+            <label>Atas nama</label>
+            <input id="payHolder" />
+            <div class="actions"><button class="btn sm" onclick="addPayment()">Tambah</button></div>
+            <table><thead><tr><th>Metode</th><th>Nomor</th><th></th></tr></thead><tbody id="tbodyPay"></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <section id="pg-ticket" class="hidden">
+        <div class="top"><div><h2>Ticket</h2><p>Pasang panel, bot yang buat channel privat.</p></div></div>
+        <div class="grid">
+          <div class="card">
+            <h3>Pasang panel</h3>
+            <label>Channel panel</label>
+            <select id="tickCh"></select>
+            <label>Kategori channel ticket</label>
+            <select id="tickCat"></select>
+            <label>Judul</label>
+            <input id="tickTitle" value="Buat Ticket" />
+            <label>Deskripsi</label>
+            <textarea id="tickDesc">Pilih jenis bantuan. Satu ticket terbuka per jenis.</textarea>
+            <div class="actions"><button class="btn" onclick="postTicket()">Pasang di Discord</button></div>
+          </div>
+          <div class="card">
+            <h3>Ticket terbuka</h3>
+            <div id="tickList" style="color:var(--muted)">Tidak ada</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pg-roles" class="hidden">
+        <div class="top"><div><h2>Take Role</h2><p>Panel tombol ambil / lepas role.</p></div></div>
+        <div class="grid">
+          <div class="card">
+            <h3>Panel baru</h3>
+            <label>Channel</label>
+            <select id="roleCh"></select>
+            <label>Judul</label>
+            <input id="roleTitle" value="Ambil Role" />
+            <label>Deskripsi</label>
+            <textarea id="roleDesc">Klik tombol untuk mengambil role.</textarea>
+            <div class="actions"><button class="btn" onclick="postRolePanel()">Buat panel</button></div>
+            <h3 style="margin-top:22px">Tambah tombol</h3>
+            <label>Role</label>
+            <select id="rolePick"></select>
+            <label>Label tombol</label>
+            <input id="roleLabel" placeholder="Gamer" />
+            <label>Emoji</label>
+            <input id="roleEmoji" placeholder="🎮" />
+            <div class="actions"><button class="btn gold" onclick="addRoleBtn()">Tambah ke panel terakhir</button></div>
+          </div>
+          <div class="card">
+            <h3>Panel terpasang</h3>
+            <div id="roleList" style="color:var(--muted)">Belum ada</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pg-community" class="hidden">
+        <div class="top"><div><h2>Komunitas</h2><p>XP, autorole, saran, log, verifikasi, starboard.</p></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Leveling</h3>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <label class="switch"><input type="checkbox" id="xpOn" /><i></i></label><span>Aktif</span>
+            </div>
+            <div class="row">
+              <div><label>XP min</label><input id="xpMin" type="number" /></div>
+              <div><label>XP max</label><input id="xpMax" type="number" /></div>
+            </div>
+            <label>Channel level-up (kosong = channel chat)</label>
+            <select id="xpCh"></select>
+            <h3 style="margin-top:18px">Autorole join</h3>
+            <select id="autoRole"></select>
+            <h3 style="margin-top:18px">Saran</h3>
+            <select id="sugCh"></select>
+            <h3 style="margin-top:18px">Log server</h3>
+            <select id="logCh"></select>
+            <div class="actions"><button class="btn" onclick="saveCommunity()">Simpan komunitas</button></div>
+          </div>
+          <div class="card">
+            <h3>Verifikasi</h3>
+            <label>Role setelah verifikasi</label>
+            <select id="verRole"></select>
+            <label>Judul panel</label>
+            <input id="verTitle" />
+            <label>Pesan</label>
+            <textarea id="verMsg"></textarea>
+            <label>Pasang di channel</label>
+            <select id="verCh"></select>
+            <div class="actions"><button class="btn" onclick="saveCommunity()">Simpan</button><button class="btn ghost" onclick="postVerify()">Pasang panel</button></div>
+            <h3 style="margin-top:22px">Starboard</h3>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <label class="switch"><input type="checkbox" id="starOn" /><i></i></label><span>Aktif</span>
+            </div>
+            <select id="starCh"></select>
+            <div class="row">
+              <div><label>Emoji</label><input id="starEmoji" /></div>
+              <div><label>Minimal</label><input id="starMin" type="number" /></div>
+            </div>
+            <div class="actions"><button class="btn ghost" onclick="saveCommunity()">Simpan starboard</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pg-games" class="hidden">
+        <div class="top"><div><h2>Game & ekonomi</h2><p>Siap dipakai member lewat slash command.</p></div></div>
+        <div class="card">
+          <p style="color:var(--muted);line-height:1.7">
+            <b style="color:var(--text)">Game:</b> /tictactoe /suit /slot /dadu /coinflip /tebakangka /tebakkata /tebakbendera /caklontong /math /siapakahaku /hangman<br/>
+            <b style="color:var(--text)">Ekonomi:</b> /daily /work /balance /transfer /leaderboard<br/>
+            <b style="color:var(--text)">Komunitas:</b> /rank /levels /suggest /giveaway /afk /announce /poll
+          </p>
+        </div>
+      </section>
+
+      <section id="pg-settings" class="hidden">
+        <div class="top"><div><h2>Pengaturan</h2><p>Nama website terkunci. Nama bot boleh diganti.</p></div></div>
+        <div class="card" style="max-width:640px">
+          <h3>Identitas</h3>
+          <label>Nama website</label>
+          <div class="locked">
+            <strong>X Community</strong>
+            <span style="color:var(--gold);font-size:.78rem;font-weight:700">TERKUNCI</span>
+          </div>
+          <label>Nama bot (boleh diganti — jadi nickname di server)</label>
+          <input id="setBotName" maxlength="32" />
+          <label>Status aktivitas</label>
+          <input id="setActivity" />
+          <label>Tipe aktivitas</label>
+          <select id="setActType">
+            <option>Watching</option>
+            <option>Playing</option>
+            <option>Listening</option>
+            <option>Competing</option>
+          </select>
+          <div class="actions"><button class="btn" onclick="saveSettings()">Simpan nama bot</button></div>
+        </div>
+      </section>
+    </main>
   </div>
-
-  <div class="toast" id="toast">Disalin! 📋</div>
+  <div class="toast" id="toast">Tersimpan</div>
 
 <script>
 let TOKEN = null;
+let STATE = {};
+const WEB_NAME = 'X Community';
 
 async function api(path, opts = {}) {
   opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
   if (TOKEN) opts.headers['x-auth-token'] = TOKEN;
   const res = await fetch(path, opts);
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Request gagal');
+  if (!res.ok) throw new Error(data.error || 'Gagal');
   return data;
-}
-
-async function login() {
-  const pass = document.getElementById('loginPass').value;
-  try {
-    const data = await api('/api/login', { method: 'POST', body: JSON.stringify({ password: pass }) });
-    TOKEN = data.token;
-    document.getElementById('loginOverlay').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    init();
-  } catch {
-    document.getElementById('loginErr').classList.add('show');
-  }
-}
-
-async function init() {
-  const st = await api('/api/status');
-  document.getElementById(st.demo ? 'badgeDemo' : 'badgeLive').classList.remove('hidden');
-  document.getElementById('statPanel').textContent = st.panelUrl;
-  const sel = document.getElementById('plan');
-  sel.innerHTML = Object.entries(st.plans)
-    .map(([k, v]) => `<option value="${k}">${k.toUpperCase()} — ${v.label}</option>`)
-    .join('');
-  refresh();
-  loadStore();
-}
-
-function rp(n) {
-  return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
-}
-
-function paintStore(cfg, wel) {
-  const open = !!cfg.open;
-  document.getElementById('statStore').textContent = open ? '🟢 BUKA' : '🔴 TUTUP';
-  const pill = document.getElementById('storePill');
-  pill.textContent = open ? 'BUKA' : 'TUTUP';
-  pill.className = 'pill ' + (open ? 'on' : 'off');
-  document.getElementById('storeHours').textContent = (cfg.hoursOpen || '09:00') + ' — ' + (cfg.hoursClose || '21:00');
-  document.getElementById('btnToggleStore').textContent = open ? '🔴 Tutup Store' : '🟢 Buka Store';
-  document.getElementById('storeName').value = cfg.name || '';
-  document.getElementById('storeOpen').value = cfg.hoursOpen || '';
-  document.getElementById('storeClose').value = cfg.hoursClose || '';
-  document.getElementById('tbodyProducts').innerHTML = (cfg.products || []).map(p =>
-    `<tr><td>${p.name}</td><td>${rp(p.price)}</td><td>${p.stock < 0 ? '∞' : p.stock}</td>
-     <td><button class="small danger" onclick="delProduct('${p.id}')">Hapus</button></td></tr>`
-  ).join('') || '<tr><td colspan="4" style="color:var(--muted)">Belum ada produk</td></tr>';
-  document.getElementById('tbodyPayments').innerHTML = (cfg.payments || []).map(p =>
-    `<tr><td>${p.method}</td><td>${p.number}${p.holder ? ' a.n. ' + p.holder : ''}</td>
-     <td><button class="small danger" onclick="delPayment('${encodeURIComponent(p.method)}')">Hapus</button></td></tr>`
-  ).join('') || '<tr><td colspan="3" style="color:var(--muted)">Belum ada payment</td></tr>';
-  if (wel) {
-    document.getElementById('welMsg').value = wel.welcome?.message || '';
-    document.getElementById('byeMsg').value = wel.goodbye?.message || '';
-    document.getElementById('btnWel').textContent = wel.welcome?.enabled ? '👋 Welcome ON' : '⏸️ Welcome OFF';
-    document.getElementById('btnBye').textContent = wel.goodbye?.enabled ? '👋 Goodbye ON' : '⏸️ Goodbye OFF';
-  }
-}
-
-async function loadStore() {
-  try {
-    const data = await api('/api/store');
-    paintStore(data.store, data.welcome);
-  } catch (e) { console.error(e); }
-}
-
-async function toggleStore() {
-  try {
-    await api('/api/store/toggle', { method: 'POST', body: '{}' });
-    toast('Status store diubah');
-    loadStore();
-  } catch (e) { alert(e.message); }
-}
-
-async function saveStore() {
-  try {
-    await api('/api/store/settings', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: document.getElementById('storeName').value,
-        hoursOpen: document.getElementById('storeOpen').value,
-        hoursClose: document.getElementById('storeClose').value,
-      }),
-    });
-    toast('Pengaturan store disimpan');
-    loadStore();
-  } catch (e) { alert(e.message); }
-}
-
-async function addProduct() {
-  const name = document.getElementById('prodName').value.trim();
-  const price = document.getElementById('prodPrice').value;
-  if (!name || price === '') { alert('Nama dan harga wajib'); return; }
-  try {
-    await api('/api/store/products', {
-      method: 'POST',
-      body: JSON.stringify({
-        name,
-        price,
-        stock: document.getElementById('prodStock').value,
-        description: document.getElementById('prodDesc').value,
-      }),
-    });
-    document.getElementById('prodName').value = '';
-    toast('Produk ditambah');
-    loadStore();
-  } catch (e) { alert(e.message); }
-}
-
-async function delProduct(id) {
-  if (!confirm('Hapus produk ini?')) return;
-  try { await api('/api/store/products/' + id, { method: 'DELETE' }); loadStore(); }
-  catch (e) { alert(e.message); }
-}
-
-async function addPayment() {
-  const method = document.getElementById('payMethod').value.trim();
-  const number = document.getElementById('payNumber').value.trim();
-  if (!method || !number) { alert('Metode dan nomor wajib'); return; }
-  try {
-    await api('/api/store/payments', {
-      method: 'POST',
-      body: JSON.stringify({ method, number, holder: document.getElementById('payHolder').value }),
-    });
-    document.getElementById('payMethod').value = '';
-    document.getElementById('payNumber').value = '';
-    toast('Payment ditambah');
-    loadStore();
-  } catch (e) { alert(e.message); }
-}
-
-async function delPayment(method) {
-  try { await api('/api/store/payments/' + method, { method: 'DELETE' }); loadStore(); }
-  catch (e) { alert(e.message); }
-}
-
-async function toggleWel(kind) {
-  try {
-    const data = await api('/api/store');
-    const enabled = !data.welcome[kind].enabled;
-    await api('/api/welcome', { method: 'POST', body: JSON.stringify({ kind, enabled }) });
-    toast(kind + (enabled ? ' aktif' : ' nonaktif'));
-    loadStore();
-  } catch (e) { alert(e.message); }
-}
-
-async function saveWelcomeMsgs() {
-  try {
-    await api('/api/welcome', { method: 'POST', body: JSON.stringify({ kind: 'welcome', message: document.getElementById('welMsg').value }) });
-    await api('/api/welcome', { method: 'POST', body: JSON.stringify({ kind: 'goodbye', message: document.getElementById('byeMsg').value }) });
-    toast('Pesan welcome/goodbye disimpan');
-  } catch (e) { alert(e.message); }
-}
-
-async function refresh() {
-  try {
-    const [sv, us] = await Promise.all([api('/api/servers'), api('/api/users')]);
-    document.getElementById('statServers').textContent = sv.servers.length;
-    document.getElementById('statUsers').textContent = us.users.length;
-    document.getElementById('tbodyServers').innerHTML = sv.servers.map(s =>
-      `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.ram || '-'}</td>
-       <td><button class="small danger" onclick="delServer(${s.id})">Hapus</button></td></tr>`
-    ).join('') || '<tr><td colspan="4" style="color:var(--muted)">Belum ada server</td></tr>';
-    document.getElementById('tbodyUsers').innerHTML = us.users.map(u =>
-      `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td>
-       <td><button class="small danger" onclick="delUser(${u.id})">Hapus</button></td></tr>`
-    ).join('') || '<tr><td colspan="4" style="color:var(--muted)">Belum ada user</td></tr>';
-  } catch (e) { console.error(e); }
-}
-
-async function createPanel() {
-  const btn = document.getElementById('btnCreate');
-  const err = document.getElementById('createErr');
-  err.classList.remove('show');
-  const username = document.getElementById('username').value.trim();
-  const plan = document.getElementById('plan').value;
-  if (!username) { err.textContent = 'Username wajib diisi!'; err.classList.add('show'); return; }
-
-  btn.disabled = true; btn.textContent = '⏳ Membuat panel...';
-  try {
-    const r = await api('/api/create-panel', { method: 'POST', body: JSON.stringify({ username, plan }) });
-    document.getElementById('rUrl').textContent = r.panelUrl;
-    document.getElementById('rUser').textContent = r.username;
-    document.getElementById('rEmail').textContent = r.email;
-    document.getElementById('rPass').textContent = r.password;
-    document.getElementById('rPlan').textContent = r.server.plan;
-    document.getElementById('rRam').textContent = r.server.ram;
-    document.getElementById('rCpu').textContent = r.server.cpu;
-    document.getElementById('rDisk').textContent = r.server.disk;
-    document.getElementById('result').classList.add('show');
-    refresh();
-  } catch (e) {
-    err.textContent = '❌ ' + e.message; err.classList.add('show');
-  }
-  btn.disabled = false; btn.textContent = '⚡ Buat Panel Sekarang';
-}
-
-async function delServer(id) {
-  if (!confirm('Hapus server ID ' + id + '?')) return;
-  try { await api('/api/servers/' + id, { method: 'DELETE' }); refresh(); toast('Server dihapus! 🗑️'); }
-  catch (e) { alert(e.message); }
-}
-async function delUser(id) {
-  if (!confirm('Hapus user ID ' + id + '?')) return;
-  try { await api('/api/users/' + id, { method: 'DELETE' }); refresh(); toast('User dihapus! 🗑️'); }
-  catch (e) { alert(e.message); }
-}
-
-function switchTab(t) {
-  document.getElementById('tabServers').classList.toggle('active', t === 'servers');
-  document.getElementById('tabUsers').classList.toggle('active', t === 'users');
-  document.getElementById('listServers').classList.toggle('hidden', t !== 'servers');
-  document.getElementById('listUsers').classList.toggle('hidden', t !== 'users');
-}
-
-function copyText(el) {
-  navigator.clipboard.writeText(el.textContent);
-  toast('Disalin! 📋');
 }
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1800);
+}
+async function login() {
+  try {
+    const r = await api('/api/login', { method: 'POST', body: JSON.stringify({ password: document.getElementById('loginPass').value }) });
+    TOKEN = r.token;
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    await boot();
+  } catch { document.getElementById('loginErr').classList.add('show'); }
+}
+function page(id) {
+  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+  document.getElementById('pg-' + id).classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === id));
+}
+function opt(list, value, extra = '') {
+  return `<option value="">— pilih ${extra}—</option>` + list.map(x =>
+    `<option value="${x.id}" ${x.id===value?'selected':''}>${x.name}</option>`).join('');
+}
+function textCh(g) { return (g?.channels||[]).filter(c => c.type === 0 || c.type === 5); }
+function cats(g) { return (g?.channels||[]).filter(c => c.type === 4); }
+function roles(g) { return g?.roles || []; }
+
+function paintPresets(elId, current, kind) {
+  const el = document.getElementById(elId);
+  el.innerHTML = (STATE.banners || []).map(b =>
+    `<div class="preset ${current===b.id?'active':''}" style="background-image:url('${b.url}')" onclick="pickPreset('${kind}','${b.id}')" title="${b.label}"></div>`
+  ).join('');
+}
+function pickPreset(kind, id) {
+  if (kind === 'welcome') {
+    STATE.welcome.welcome.bannerPreset = id;
+    STATE.welcome.welcome.bannerUrl = '';
+    document.getElementById('welUrl').value = '';
+    updatePreview();
+    paintPresets('welPresets', id, 'welcome');
+  } else {
+    STATE.welcome.goodbye.bannerPreset = id;
+    paintPresets('byePresets', id, 'goodbye');
+  }
+}
+function bannerUrl(part) {
+  if (part.bannerUrl) return part.bannerUrl;
+  const p = (STATE.banners || []).find(b => b.id === part.bannerPreset);
+  return p ? p.url : '/banners/welcome.jpg';
+}
+function updatePreview() {
+  const w = STATE.welcome?.welcome || {};
+  document.getElementById('welPreview').style.backgroundImage = `url('${bannerUrl(w)}')`;
+  document.getElementById('pvTitle').textContent = document.getElementById('welTitle').value || w.title || 'Selamat Datang!';
+  document.getElementById('pvMsg').textContent = document.getElementById('welMsg').value || w.message || '';
+}
+
+async function boot() {
+  STATE = await api('/api/bootstrap');
+  const g = STATE.guild;
+  const s = STATE.settings || {};
+  document.getElementById('botPill').className = 'pill ' + (STATE.botOnline ? 'on' : 'off');
+  document.getElementById('botPill').textContent = STATE.botOnline ? 'Bot online' : 'Bot offline';
+  document.getElementById('guildPill').textContent = g?.name || 'Hubungkan bot + isi GUILD_ID';
+  document.getElementById('stMembers').textContent = g?.memberCount ?? 0;
+  document.getElementById('stStore').textContent = STATE.store?.open ? 'BUKA' : 'TUTUP';
+  document.getElementById('stTickets').textContent = (STATE.tickets || []).length;
+  document.getElementById('stBotName').textContent = s.botName || WEB_NAME;
+  document.getElementById('homeLevels').innerHTML = (STATE.levels || []).map(l =>
+    `#${l.rank} · Lv ${l.level} · ${l.xp} XP`).join('<br/>') || 'Belum ada XP';
+
+  fillSelects();
+  fillWelcome();
+  fillStore();
+  fillCommunity();
+  fillTickets();
+  fillRoles();
+  fillSettings();
+}
+
+function fillSelects() {
+  const g = STATE.guild;
+  const w = STATE.welcome || {};
+  const st = STATE.store || {};
+  const c = STATE.community || {};
+  const t = textCh(g), k = cats(g), r = roles(g);
+  const map = [
+    ['welCh', t, w.welcome?.channelId],
+    ['byeCh', t, w.goodbye?.channelId],
+    ['storeCh', t, st.channelId],
+    ['storeCat', k, st.ticketCategoryId],
+    ['storeStaff', r, st.staffRoleId],
+    ['tickCh', t, ''],
+    ['tickCat', k, st.ticketCategoryId],
+    ['roleCh', t, ''],
+    ['rolePick', r, ''],
+    ['xpCh', t, c.leveling?.levelChannelId],
+    ['autoRole', r, c.autoroleId],
+    ['sugCh', t, c.suggestChannelId],
+    ['logCh', t, c.logChannelId],
+    ['verRole', r, c.verify?.roleId],
+    ['verCh', t, ''],
+    ['starCh', t, c.starboard?.channelId],
+  ];
+  map.forEach(([id, list, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opt(list, val);
+  });
+}
+
+function fillWelcome() {
+  const w = STATE.welcome.welcome, b = STATE.welcome.goodbye;
+  document.getElementById('welOn').checked = !!w.enabled;
+  document.getElementById('welMention').checked = w.mention !== false;
+  document.getElementById('welTitle').value = w.title || '';
+  document.getElementById('welMsg').value = w.message || '';
+  document.getElementById('welColor').value = w.color || 'a78bfa';
+  document.getElementById('welUrl').value = w.bannerUrl || '';
+  document.getElementById('byeOn').checked = !!b.enabled;
+  document.getElementById('byeTitle').value = b.title || '';
+  document.getElementById('byeMsg').value = b.message || '';
+  document.getElementById('byeUrl').value = b.bannerUrl || '';
+  paintPresets('welPresets', w.bannerPreset, 'welcome');
+  paintPresets('byePresets', b.bannerPreset, 'goodbye');
+  document.getElementById('welTitle').oninput = updatePreview;
+  document.getElementById('welMsg').oninput = updatePreview;
+  updatePreview();
+}
+
+function fillStore() {
+  const s = STATE.store;
+  document.getElementById('storeName').value = s.name || '';
+  document.getElementById('storeOpen').value = s.hoursOpen || '';
+  document.getElementById('storeClose').value = s.hoursClose || '';
+  document.getElementById('btnStoreToggle').textContent = s.open ? 'Tutup store' : 'Buka store';
+  document.getElementById('tbodyProducts').innerHTML = (s.products||[]).map(p =>
+    `<tr><td>${p.name}</td><td>Rp ${Number(p.price).toLocaleString('id-ID')}</td>
+     <td><button class="btn sm danger" onclick="delProduct('${p.id}')">Hapus</button></td></tr>`
+  ).join('') || '<tr><td colspan="3" style="color:var(--muted)">Kosong</td></tr>';
+  document.getElementById('tbodyPay').innerHTML = (s.payments||[]).map(p =>
+    `<tr><td>${p.method}</td><td>${p.number}</td>
+     <td><button class="btn sm danger" onclick="delPay('${encodeURIComponent(p.method)}')">Hapus</button></td></tr>`
+  ).join('') || '<tr><td colspan="3" style="color:var(--muted)">Kosong</td></tr>';
+}
+
+function fillCommunity() {
+  const c = STATE.community;
+  document.getElementById('xpOn').checked = !!c.leveling?.enabled;
+  document.getElementById('xpMin').value = c.leveling?.xpMin ?? 15;
+  document.getElementById('xpMax').value = c.leveling?.xpMax ?? 25;
+  document.getElementById('verTitle').value = c.verify?.title || 'Verifikasi';
+  document.getElementById('verMsg').value = c.verify?.message || '';
+  document.getElementById('starOn').checked = !!c.starboard?.enabled;
+  document.getElementById('starEmoji').value = c.starboard?.emoji || '⭐';
+  document.getElementById('starMin').value = c.starboard?.min ?? 3;
+}
+
+function fillTickets() {
+  const list = STATE.tickets || [];
+  document.getElementById('tickList').innerHTML = list.length
+    ? list.map(t => `#${t.number || ''} · ${t.type} · <@${t.userId}>`).join('<br/>')
+    : 'Tidak ada ticket terbuka';
+}
+function fillRoles() {
+  const list = STATE.roles || [];
+  document.getElementById('roleList').innerHTML = list.length
+    ? list.map(p => `<div style="margin:8px 0"><b>${p.title}</b><br/><span style="color:var(--muted)">${p.roles.length} role · ${p.messageId}</span></div>`).join('')
+    : 'Belum ada panel';
+}
+function fillSettings() {
+  const s = STATE.settings || {};
+  document.getElementById('setBotName').value = s.botName || WEB_NAME;
+  document.getElementById('setActivity').value = s.activity || WEB_NAME;
+  document.getElementById('setActType').value = s.activityType || 'Watching';
+}
+
+async function saveWelcome(kind) {
+  const body = kind === 'welcome' ? {
+    kind, enabled: document.getElementById('welOn').checked,
+    mention: document.getElementById('welMention').checked,
+    channelId: document.getElementById('welCh').value,
+    title: document.getElementById('welTitle').value,
+    message: document.getElementById('welMsg').value,
+    color: document.getElementById('welColor').value.replace('#',''),
+    bannerPreset: STATE.welcome.welcome.bannerPreset || 'aurora',
+    bannerUrl: document.getElementById('welUrl').value,
+    showBanner: true,
+  } : {
+    kind, enabled: document.getElementById('byeOn').checked,
+    channelId: document.getElementById('byeCh').value,
+    title: document.getElementById('byeTitle').value,
+    message: document.getElementById('byeMsg').value,
+    bannerPreset: STATE.welcome.goodbye.bannerPreset || 'dusk',
+    bannerUrl: document.getElementById('byeUrl').value,
+    showBanner: true,
+  };
+  await api('/api/welcome', { method: 'POST', body: JSON.stringify(body) });
+  toast('Welcome disimpan');
+  boot();
+}
+async function testWelcome(kind) {
+  try { await api('/api/welcome/test', { method: 'POST', body: JSON.stringify({ kind }) }); toast('Tes dikirim ke Discord'); }
+  catch (e) { alert(e.message); }
+}
+async function toggleStore() {
+  await api('/api/store/toggle', { method: 'POST', body: '{"announce":true}' });
+  toast('Status store diubah'); boot();
+}
+async function saveStore() {
+  await api('/api/store/settings', { method: 'POST', body: JSON.stringify({
+    name: document.getElementById('storeName').value,
+    hoursOpen: document.getElementById('storeOpen').value,
+    hoursClose: document.getElementById('storeClose').value,
+    channelId: document.getElementById('storeCh').value,
+    ticketCategoryId: document.getElementById('storeCat').value,
+    staffRoleId: document.getElementById('storeStaff').value,
+  })});
+  toast('Store disimpan'); boot();
+}
+async function addProduct() {
+  await api('/api/store/products', { method: 'POST', body: JSON.stringify({
+    name: document.getElementById('prodName').value,
+    price: document.getElementById('prodPrice').value,
+    stock: document.getElementById('prodStock').value,
+    description: document.getElementById('prodDesc').value,
+  })});
+  toast('Produk ditambah'); boot();
+}
+async function delProduct(id) { await api('/api/store/products/'+id, { method:'DELETE' }); boot(); }
+async function addPayment() {
+  await api('/api/store/payments', { method:'POST', body: JSON.stringify({
+    method: document.getElementById('payMethod').value,
+    number: document.getElementById('payNumber').value,
+    holder: document.getElementById('payHolder').value,
+  })});
+  toast('Payment ditambah'); boot();
+}
+async function delPay(m) { await api('/api/store/payments/'+m, { method:'DELETE' }); boot(); }
+async function postTicket() {
+  try {
+    await api('/api/ticket/panel', { method:'POST', body: JSON.stringify({
+      channelId: document.getElementById('tickCh').value,
+      categoryId: document.getElementById('tickCat').value,
+      title: document.getElementById('tickTitle').value,
+      description: document.getElementById('tickDesc').value,
+    })});
+    toast('Panel ticket terpasang');
+  } catch(e) { alert(e.message); }
+}
+async function postRolePanel() {
+  try {
+    await api('/api/takerole/panel', { method:'POST', body: JSON.stringify({
+      channelId: document.getElementById('roleCh').value,
+      title: document.getElementById('roleTitle').value,
+      description: document.getElementById('roleDesc').value,
+    })});
+    toast('Panel role dibuat'); boot();
+  } catch(e) { alert(e.message); }
+}
+async function addRoleBtn() {
+  try {
+    await api('/api/takerole/role', { method:'POST', body: JSON.stringify({
+      roleId: document.getElementById('rolePick').value,
+      label: document.getElementById('roleLabel').value,
+      emoji: document.getElementById('roleEmoji').value,
+    })});
+    toast('Role ditambahkan'); boot();
+  } catch(e) { alert(e.message); }
+}
+async function saveCommunity() {
+  await api('/api/community', { method:'POST', body: JSON.stringify({
+    autoroleId: document.getElementById('autoRole').value,
+    suggestChannelId: document.getElementById('sugCh').value,
+    logChannelId: document.getElementById('logCh').value,
+    leveling: {
+      enabled: document.getElementById('xpOn').checked,
+      xpMin: Number(document.getElementById('xpMin').value),
+      xpMax: Number(document.getElementById('xpMax').value),
+      levelChannelId: document.getElementById('xpCh').value,
+    },
+    verify: {
+      roleId: document.getElementById('verRole').value,
+      title: document.getElementById('verTitle').value,
+      message: document.getElementById('verMsg').value,
+      enabled: true,
+    },
+    starboard: {
+      enabled: document.getElementById('starOn').checked,
+      channelId: document.getElementById('starCh').value,
+      emoji: document.getElementById('starEmoji').value,
+      min: Number(document.getElementById('starMin').value),
+    },
+  })});
+  toast('Komunitas disimpan'); boot();
+}
+async function postVerify() {
+  try {
+    await saveCommunity();
+    await api('/api/verify/panel', { method:'POST', body: JSON.stringify({ channelId: document.getElementById('verCh').value }) });
+    toast('Panel verifikasi terpasang');
+  } catch(e) { alert(e.message); }
+}
+async function saveSettings() {
+  const name = document.getElementById('setBotName').value.trim();
+  if (!name) return alert('Nama bot wajib');
+  await api('/api/settings', { method:'POST', body: JSON.stringify({
+    botName: name,
+    activity: document.getElementById('setActivity').value,
+    activityType: document.getElementById('setActType').value,
+  })});
+  toast('Nama bot disimpan'); boot();
 }
 </script>
 </body>

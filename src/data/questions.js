@@ -96,8 +96,8 @@ const SIAPA_AKU = [
     answers: ["discord"],
   },
   {
-    clues: ["Aku panel open-source untuk game server.", "Telurku disebut egg.", "Bot ini bisa auto-buat akunku."],
-    answers: ["pterodactyl", "ptero", "pterodactyl panel"],
+    clues: ["Aku platform chat ungu.", "Aku punya slash command dan server komunitas.", "Bot ini tinggal di aku."],
+    answers: ["discord"],
   },
   {
     clues: ["Aku pulau terpadat di Indonesia.", "Ibukota pernah ada di sini.", "Ada candi Borobudur di dekatku."],

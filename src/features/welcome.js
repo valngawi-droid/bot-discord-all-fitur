@@ -1,29 +1,46 @@
 // ==========================================
-// Welcome & Goodbye
+// Welcome & Goodbye + banner
 // ==========================================
 const db = require("../lib/db");
 const { isAdmin, deny } = require("../lib/permissions");
 const { COLORS, embed, respond, parseColor } = require("../lib/util");
+const { buildBannerAttachment, listPresets } = require("./banner");
 
 const DEFAULTS = () => ({
   welcome: {
     enabled: false,
     channelId: null,
+    title: "Selamat Datang!",
     message:
-      "Halo {user.mention}, selamat datang di **{server}**!\nKamu member ke-**{membercount}**. Semoga betah ya 💚",
-    color: "00d9a5",
+      "Halo {user.mention}, selamat datang di **{server}**!\nKamu member ke-**{membercount}**. Semoga betah ✨",
+    color: "a78bfa",
+    bannerPreset: "aurora",
+    bannerUrl: "",
+    showBanner: true,
+    mention: true,
   },
   goodbye: {
     enabled: false,
     channelId: null,
+    title: "Sampai jumpa",
     message: "**{user.tag}** telah keluar dari **{server}**.\nSekarang ada **{membercount}** member.",
     color: "ff8c42",
+    bannerPreset: "dusk",
+    bannerUrl: "",
+    showBanner: true,
+    mention: false,
   },
 });
 
 function getConfig(guildId) {
   const cfg = db.guildBucket("welcome", guildId, DEFAULTS);
-  if (!cfg.welcome) Object.assign(cfg, DEFAULTS());
+  const d = DEFAULTS();
+  for (const kind of ["welcome", "goodbye"]) {
+    if (!cfg[kind]) cfg[kind] = d[kind];
+    for (const [k, v] of Object.entries(d[kind])) {
+      if (cfg[kind][k] == null) cfg[kind][k] = v;
+    }
+  }
   return cfg;
 }
 
@@ -43,20 +60,27 @@ function formatMessage(template, member) {
     .replace(/\{membercount\}/g, String(count));
 }
 
-function buildCard(kind, cfgPart, member) {
+async function buildPayload(kind, cfgPart, member) {
   const isWelcome = kind === "welcome";
   const user = member.user || member;
-  return embed({
-    color: parseColor(cfgPart.color, isWelcome ? COLORS.teal : COLORS.orange),
-    title: isWelcome ? "👋 Selamat Datang!" : "👋 Selamat Tinggal",
+  const banner = await buildBannerAttachment(cfgPart);
+  const e = embed({
+    color: parseColor(cfgPart.color, isWelcome ? COLORS.violet : COLORS.orange),
+    title: cfgPart.title || (isWelcome ? "👋 Selamat Datang!" : "👋 Selamat Tinggal"),
     description: formatMessage(cfgPart.message, member),
     thumbnail: user.displayAvatarURL?.({ size: 256 }) || undefined,
-    footer: member.guild ? member.guild.name : undefined,
+    image: banner?.url,
+    footer: member.guild ? `${member.guild.name} · X Community` : "X Community",
     author: {
       name: user.tag || user.username,
       iconURL: user.displayAvatarURL?.({ size: 64 }),
     },
   });
+  return {
+    content: cfgPart.mention && isWelcome ? `${member}` : undefined,
+    embeds: [e],
+    files: banner?.file ? [banner.file] : [],
+  };
 }
 
 async function sendCard(guild, kind, member) {
@@ -66,10 +90,8 @@ async function sendCard(guild, kind, member) {
   const channel = guild.channels.cache.get(part.channelId);
   if (!channel || !channel.isTextBased()) return;
   try {
-    await channel.send({
-      content: kind === "welcome" ? `${member}` : undefined,
-      embeds: [buildCard(kind, part, member)],
-    });
+    const payload = await buildPayload(kind, part, member);
+    await channel.send(payload);
   } catch (err) {
     console.error(`⚠️  Gagal kirim ${kind}:`, err.message);
   }
@@ -125,10 +147,30 @@ async function handleKind(interaction, kind) {
     });
   }
 
+  if (sub === "banner") {
+    const url = interaction.options.getString("url");
+    const preset = interaction.options.getString("preset");
+    if (url) {
+      if (!/^https?:\/\//i.test(url)) {
+        return respond(interaction, { content: "❌ URL banner tidak valid.", ephemeral: true });
+      }
+      part.bannerUrl = url;
+    }
+    if (preset) {
+      part.bannerPreset = preset;
+      part.showBanner = preset !== "none";
+      if (preset !== "custom") part.bannerUrl = "";
+    } else {
+      part.showBanner = true;
+    }
+    saveConfig(interaction.guildId, cfg);
+    return respond(interaction, { content: `✅ Banner ${label.toLowerCase()} disimpan.`, ephemeral: true });
+  }
+
   if (sub === "warna") {
     const hex = interaction.options.getString("hex").replace("#", "");
     if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
-      return respond(interaction, { content: "❌ Warna harus hex 6 digit, contoh `00d9a5`.", ephemeral: true });
+      return respond(interaction, { content: "❌ Warna harus hex 6 digit, contoh `a78bfa`.", ephemeral: true });
     }
     part.color = hex;
     saveConfig(interaction.guildId, cfg);
@@ -163,4 +205,6 @@ module.exports = {
   handleGoodbye,
   handleJoin,
   handleLeave,
+  sendCard,
+  listPresets,
 };

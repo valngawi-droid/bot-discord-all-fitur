@@ -229,4 +229,65 @@ async function handleButton(interaction) {
   }
 }
 
-module.exports = { handleCommand, handleButton };
+async function createPanelInChannel(channel, { title, description } = {}) {
+  const data = all();
+  const panel = {
+    guildId: channel.guild.id,
+    channelId: channel.id,
+    messageId: null,
+    title: title || "🎭 Ambil Role",
+    description: description || "Klik tombol di bawah untuk mengambil atau melepas role.",
+    roles: [],
+  };
+  const msg = await channel.send({
+    embeds: [panelEmbed(panel)],
+    components: [],
+  });
+  panel.messageId = msg.id;
+  data.panels[msg.id] = panel;
+  data.last[channel.guild.id] = msg.id;
+  save(data);
+  return panel;
+}
+
+function listPanels(guildId) {
+  return Object.values(all().panels).filter((p) => p.guildId === guildId);
+}
+
+async function addRoleToPanel(client, guildId, { roleId, label, emoji, style, messageId }) {
+  const data = all();
+  const id = messageId || data.last[guildId];
+  if (!id || !data.panels[id]) throw new Error("Belum ada panel");
+  const panel = data.panels[id];
+  if (panel.roles.some((r) => r.roleId === roleId)) throw new Error("Role sudah ada di panel");
+  if (panel.roles.length >= 25) throw new Error("Maksimal 25 tombol");
+  panel.roles.push({
+    roleId,
+    label: label || "Role",
+    emoji: emoji || null,
+    style: style || "secondary",
+  });
+  save(data);
+  await refreshPanel(client, panel);
+  return panel;
+}
+
+async function removeRoleFromPanel(client, guildId, { roleId, messageId }) {
+  const data = all();
+  const id = messageId || data.last[guildId];
+  if (!id || !data.panels[id]) throw new Error("Panel tidak ditemukan");
+  const panel = data.panels[id];
+  panel.roles = panel.roles.filter((r) => r.roleId !== roleId);
+  save(data);
+  await refreshPanel(client, panel);
+  return panel;
+}
+
+module.exports = {
+  handleCommand,
+  handleButton,
+  createPanelInChannel,
+  listPanels,
+  addRoleToPanel,
+  removeRoleFromPanel,
+};

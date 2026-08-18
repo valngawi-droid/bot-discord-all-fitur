@@ -7,7 +7,7 @@
 set -e
 
 echo "╔══════════════════════════════════════════╗"
-echo "║  🦖 INSTALLER PTERO AUTO PANEL (VPS)     ║"
+echo "║  X COMMUNITY — installer VPS             ║"
 echo "╚══════════════════════════════════════════╝"
 
 # 1. Update sistem
@@ -50,7 +50,7 @@ echo "✅ INSTALASI SELESAI! Langkah selanjutnya:"
 echo ""
 echo "  1. Edit konfigurasi:   nano .env"
 echo "  2. Daftarkan command:  npm run deploy-commands"
-echo "  3. Jalankan 24 jam:    pm2 start index.js --name ptero-panel"
+echo "  3. Jalankan 24 jam:    pm2 start index.js --name x-community"
 echo "  4. Auto-start saat reboot:"
 echo "       pm2 save && pm2 startup"
 echo ""

@@ -9,13 +9,6 @@ const {
   SlashCommandBuilder,
   ChannelType,
 } = require("discord.js");
-const { PLANS } = require("./pterodactyl");
-
-const planChoices = Object.entries(PLANS).map(([key, v]) => ({
-  name: `${key.toUpperCase()} — ${v.label}`,
-  value: key,
-}));
-
 const mentionChoices = [
   { name: "Tidak ada", value: "none" },
   { name: "@here", value: "here" },
@@ -23,38 +16,8 @@ const mentionChoices = [
 ];
 
 const commands = [
-  new SlashCommandBuilder()
-    .setName("createpanel")
-    .setDescription("🚀 Auto create panel Pterodactyl (user + server)")
-    .addStringOption((o) =>
-      o.setName("username").setDescription("Username untuk panel").setRequired(true)
-    )
-    .addStringOption((o) =>
-      o
-        .setName("paket")
-        .setDescription("Pilih paket resource")
-        .setRequired(true)
-        .addChoices(...planChoices.slice(0, 25))
-    ),
-
-  new SlashCommandBuilder()
-    .setName("deletepanel")
-    .setDescription("🗑️ Hapus server panel berdasarkan ID")
-    .addIntegerOption((o) =>
-      o.setName("server_id").setDescription("ID server di panel").setRequired(true)
-    ),
-
-  new SlashCommandBuilder()
-    .setName("deleteuser")
-    .setDescription("🗑️ Hapus user panel berdasarkan ID")
-    .addIntegerOption((o) =>
-      o.setName("user_id").setDescription("ID user di panel").setRequired(true)
-    ),
-
-  new SlashCommandBuilder().setName("listserver").setDescription("📋 Lihat daftar server di panel"),
-  new SlashCommandBuilder().setName("listuser").setDescription("👥 Lihat daftar user di panel"),
   new SlashCommandBuilder().setName("ping").setDescription("🏓 Cek status bot"),
-  new SlashCommandBuilder().setName("help").setDescription("📖 Bantuan semua fitur bot"),
+  new SlashCommandBuilder().setName("help").setDescription("📖 Bantuan X Community"),
 
   // ===== STORE =====
   new SlashCommandBuilder()
@@ -310,9 +273,26 @@ const commands = [
     )
     .addSubcommand((s) =>
       s
+        .setName("banner")
+        .setDescription("Atur banner welcome")
+        .addStringOption((o) =>
+          o
+            .setName("preset")
+            .setDescription("Preset banner")
+            .addChoices(
+              { name: "Aurora", value: "aurora" },
+              { name: "Dusk", value: "dusk" },
+              { name: "Royal", value: "royal" },
+              { name: "Matikan banner", value: "none" }
+            )
+        )
+        .addStringOption((o) => o.setName("url").setDescription("URL gambar kustom"))
+    )
+    .addSubcommand((s) =>
+      s
         .setName("warna")
         .setDescription("Warna embed (hex)")
-        .addStringOption((o) => o.setName("hex").setDescription("Contoh 00d9a5").setRequired(true))
+        .addStringOption((o) => o.setName("hex").setDescription("Contoh a78bfa").setRequired(true))
     )
     .addSubcommand((s) => s.setName("on").setDescription("Aktifkan welcome"))
     .addSubcommand((s) => s.setName("off").setDescription("Nonaktifkan welcome"))
@@ -429,6 +409,49 @@ const commands = [
     .setDescription("👤 Info member")
     .addUserOption((o) => o.setName("user").setDescription("User")),
   new SlashCommandBuilder().setName("serverinfo").setDescription("🏠 Info server"),
+  new SlashCommandBuilder()
+    .setName("rank")
+    .setDescription("🏅 Lihat level & XP")
+    .addUserOption((o) => o.setName("user").setDescription("Member")),
+  new SlashCommandBuilder().setName("levels").setDescription("🏆 Leaderboard XP server"),
+  new SlashCommandBuilder()
+    .setName("suggest")
+    .setDescription("💡 Kirim saran ke komunitas")
+    .addStringOption((o) => o.setName("pesan").setDescription("Isi saran").setRequired(true)),
+  new SlashCommandBuilder()
+    .setName("giveaway")
+    .setDescription("🎉 Giveaway komunitas")
+    .addSubcommand((s) =>
+      s
+        .setName("start")
+        .setDescription("Mulai giveaway")
+        .addStringOption((o) => o.setName("durasi").setDescription("Contoh 10m / 2h / 1d").setRequired(true))
+        .addStringOption((o) => o.setName("hadiah").setDescription("Hadiah").setRequired(true))
+        .addIntegerOption((o) => o.setName("pemenang").setDescription("Jumlah pemenang").setMinValue(1).setMaxValue(20))
+    )
+    .addSubcommand((s) =>
+      s
+        .setName("end")
+        .setDescription("Akhiri giveaway")
+        .addStringOption((o) => o.setName("pesan_id").setDescription("ID pesan giveaway").setRequired(true))
+    ),
+  new SlashCommandBuilder()
+    .setName("afk")
+    .setDescription("💤 Tandai sedang AFK")
+    .addStringOption((o) => o.setName("alasan").setDescription("Alasan")),
+  new SlashCommandBuilder()
+    .setName("announce")
+    .setDescription("📢 Kirim pengumuman embed")
+    .addStringOption((o) => o.setName("pesan").setDescription("Isi").setRequired(true))
+    .addStringOption((o) => o.setName("judul").setDescription("Judul"))
+    .addChannelOption((o) =>
+      o.setName("channel").setDescription("Channel tujuan").addChannelTypes(ChannelType.GuildText)
+    ),
+  new SlashCommandBuilder()
+    .setName("verify")
+    .setDescription("✅ Pasang panel verifikasi")
+    .addRoleOption((o) => o.setName("role").setDescription("Role setelah verifikasi")),
+
   new SlashCommandBuilder()
     .setName("poll")
     .setDescription("📊 Buat polling tombol")

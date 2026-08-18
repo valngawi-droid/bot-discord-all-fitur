@@ -10,7 +10,7 @@
 set -e
 
 echo "╔══════════════════════════════════════════╗"
-echo "║  🦖 INSTALLER PTERO AUTO PANEL (TERMUX)  ║"
+echo "║  X COMMUNITY — installer Termux          ║"
 echo "╚══════════════════════════════════════════╝"
 
 echo "📦 [1/4] Update package Termux..."

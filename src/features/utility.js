@@ -7,20 +7,9 @@ const {
   ButtonStyle,
   StringSelectMenuBuilder,
 } = require("discord.js");
-const ptero = require("../pterodactyl");
 const { COLORS, embed, respond } = require("../lib/util");
 
 const HELP = {
-  panel: {
-    label: "🦖 Auto Panel",
-    text: [
-      "`/createpanel` — Buat user + server Pterodactyl",
-      "`/deletepanel` — Hapus server",
-      "`/deleteuser` — Hapus user panel",
-      "`/listserver` — Daftar server",
-      "`/listuser` — Daftar user",
-    ].join("\n"),
-  },
   store: {
     label: "🏪 Store",
     text: [
@@ -55,9 +44,21 @@ const HELP = {
   welcome: {
     label: "👋 Welcome / Goodbye",
     text: [
-      "`/welcome channel` `pesan` `warna` `on` `off` `test`",
-      "`/goodbye channel` `pesan` `warna` `on` `off` `test`",
+      "`/welcome channel` `pesan` `banner` `warna` `on` `off` `test`",
+      "`/goodbye channel` `pesan` `banner` `warna` `on` `off` `test`",
       "Placeholder: `{user}` `{user.tag}` `{user.mention}` `{server}` `{membercount}`",
+      "Setup lengkap juga lewat dashboard website.",
+    ].join("\n"),
+  },
+  community: {
+    label: "✨ Komunitas",
+    text: [
+      "`/rank` `/levels` — XP & peringkat",
+      "`/suggest` — Kirim saran + vote",
+      "`/giveaway start` `end` — Giveaway tombol",
+      "`/afk` — Tandai sedang AFK",
+      "`/announce` — Pengumuman embed",
+      "`/verify` — Panel verifikasi",
     ].join("\n"),
   },
   game: {
@@ -94,7 +95,7 @@ function helpEmbed(key = "store") {
     color: COLORS.teal,
     title: `📖 Bantuan — ${item.label}`,
     description: item.text,
-    footer: ptero.DEMO_MODE ? "MODE DEMO • panel belum tersambung" : "All Fitur Bot",
+    footer: "X Community",
   });
 }
 

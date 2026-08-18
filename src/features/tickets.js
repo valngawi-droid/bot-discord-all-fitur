@@ -468,9 +468,39 @@ async function handleButton(interaction) {
   }
 }
 
+async function postPanel(channel, { title, description } = {}) {
+  const cfg = store.getConfig(channel.guild.id);
+  return channel.send({
+    embeds: [
+      embed({
+        color: COLORS.violet || 0xa78bfa,
+        title: title || "🎫 Buat Ticket",
+        description:
+          description || "Pilih jenis bantuan di bawah. Satu ticket terbuka per jenis.",
+        fields: [
+          { name: "🛒 Pesanan", value: "Order produk / jasa toko", inline: true },
+          { name: "💬 Support", value: "Tanya stok, cara order, dll", inline: true },
+          { name: "⚠️ Komplain", value: "Kendala transaksi", inline: true },
+        ],
+        footer: `${cfg.name} · X Community`,
+      }),
+    ],
+    components: [panelButtons()],
+  });
+}
+
+function listOpen(guildId) {
+  const all = data();
+  return Object.entries(all.open)
+    .filter(([, t]) => t.guildId === guildId && !t.closed)
+    .map(([channelId, t]) => ({ channelId, ...t }));
+}
+
 module.exports = {
   createTicket,
   handleCommand,
   handleButton,
   closeTicket,
+  postPanel,
+  listOpen,
 };

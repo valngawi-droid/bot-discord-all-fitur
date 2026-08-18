@@ -1,8 +1,6 @@
 // ==========================================
 // Cek izin owner / admin / staff toko
 // ==========================================
-const ptero = require("../pterodactyl");
-
 const OWNER_IDS = (process.env.OWNER_IDS || "")
   .split(",")
   .map((s) => s.trim())
@@ -18,7 +16,6 @@ function isOwner(userId) {
 }
 
 function isAdmin(interaction) {
-  if (ptero.DEMO_MODE && process.env.DEMO_LOCK_ADMIN !== "1") return true;
   if (isOwner(interaction.user.id)) return true;
   const member = interaction.member;
   if (member && member.roles && member.permissions) {
