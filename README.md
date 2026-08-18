@@ -21,6 +21,18 @@ Login admin lalu atur:
 - `/suggest` vote, `/giveaway`, `/afk`, `/announce`, `/verify`, `/poll`
 - Mini games + ekonomi koin
 
+## Hosting di KataBump
+
+Panel: [control.katabump.com](https://control.katabump.com/)
+
+1. Buat server **Node.js 18/20**
+2. Upload ZIP atau `git clone` ke `/home/container`
+3. Startup → **JS FILE** = `index.js`
+4. Buat file `.env` (lihat `.env.example`)
+5. Console: `npm install` lalu `node src/deploy-commands.js` lalu **Start**
+
+Panduan lengkap: [HOSTING-KATABUMP.md](./HOSTING-KATABUMP.md)
+
 ## Install
 
 ```bash

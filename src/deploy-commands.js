@@ -3,6 +3,7 @@
 // Jalankan: npm run deploy-commands
 // ==========================================
 require("dotenv").config();
+process.env.BOT_TOKEN = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN || "";
 const {
   REST,
   Routes,

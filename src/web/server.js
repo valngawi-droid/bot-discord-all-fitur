@@ -16,7 +16,8 @@ const settings = require("../lib/settings");
 const { WEB_NAME } = require("../lib/brand");
 
 const app = express();
-const PORT = process.env.WEB_PORT || 3000;
+// Katabump / Pterodactyl memakai SERVER_PORT
+const PORT = Number(process.env.SERVER_PORT || process.env.PORT || process.env.WEB_PORT || 3000);
 const ADMIN_PASSWORD = process.env.WEB_ADMIN_PASSWORD || "admin123";
 const GUILD_ID = process.env.GUILD_ID || "web";
 

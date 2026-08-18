@@ -3,6 +3,7 @@
 // npm start
 // ==========================================
 require("dotenv").config();
+process.env.BOT_TOKEN = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN || "";
 const { WEB_NAME } = require("./src/lib/brand");
 
 console.log("╔══════════════════════════════════════════╗");

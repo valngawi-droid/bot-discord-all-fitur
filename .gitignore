@@ -3,3 +3,4 @@ node_modules/
 *.log
 .pm2/
 data/*.json
+x-community-katabump.zip

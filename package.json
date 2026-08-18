@@ -3,6 +3,9 @@
   "version": "3.0.0",
   "description": "X Community — Bot Discord + dashboard: store, ticket, take role, welcome banner, komunitas, games",
   "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node index.js",
     "bot": "node src/bot.js",

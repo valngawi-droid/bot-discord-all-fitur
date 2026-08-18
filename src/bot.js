@@ -2,6 +2,7 @@
 // X Community — Discord bot
 // ==========================================
 require("dotenv").config();
+process.env.BOT_TOKEN = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN || "";
 const {
   Client,
   GatewayIntentBits,
