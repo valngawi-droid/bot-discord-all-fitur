@@ -363,5 +363,8 @@ app.post("/api/settings", auth, async (req, res) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🌐 ${WEB_NAME} dashboard: http://0.0.0.0:${PORT}`);
+  console.log(`🌐 ${WEB_NAME} dashboard listen 0.0.0.0:${PORT}`);
+  console.log("   Jangan buka 0.0.0.0 — itu alamat dalam server.");
+  console.log("   Cek tab Network di KataBump. Kalau ada IP publik, buka http://IP:PORT");
+  console.log("   Paket bot gratis sering tidak punya IP publik — pakai slash command di Discord.");
 });
