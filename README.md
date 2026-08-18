@@ -64,7 +64,6 @@ Role bot harus **di atas** role yang dibagikan (take role / autorole / verify).
 | Variabel | Keterangan |
 |---|---|
 | `BOT_TOKEN` | Token bot |
-| `CLIENT_ID` | Application ID |
 | `CLIENT_ID` | Application ID (wajib untuk invite + slash command) |
 | `GUILD_ID` | Opsional. Fallback dashboard saja — bot tetap multi-server |
 | `OWNER_IDS` | ID owner |
