@@ -32,14 +32,18 @@ function auth(req, res, next) {
 }
 
 function gid(req) {
-  return (
-    req.headers["x-guild-id"] ||
-    req.query.guild ||
-    req.body?.guildId ||
-    process.env.GUILD_ID ||
-    runtime.firstGuildId() ||
-    "web"
-  );
+  try {
+    return (
+      req.headers["x-guild-id"] ||
+      req.query.guild ||
+      req.body?.guildId ||
+      process.env.GUILD_ID ||
+      (typeof runtime.firstGuildId === "function" ? runtime.firstGuildId() : null) ||
+      "web"
+    );
+  } catch {
+    return process.env.GUILD_ID || "web";
+  }
 }
 
 async function guildOrFail(req) {
@@ -82,25 +86,30 @@ app.post("/api/login", (req, res) => {
 });
 
 app.get("/api/bootstrap", auth, async (req, res) => {
-  const id = gid(req);
-  const snap = await guildOrFail(req);
-  const guilds = runtime.listGuilds();
-  res.json({
-    webName: WEB_NAME,
-    botOnline: runtime.isReady(),
-    guildId: id,
-    guild: snap,
-    guilds,
-    inviteUrl: runtime.inviteUrl(),
-    store: store.getConfig(id),
-    welcome: welcome.getConfig(id),
-    community: community.getConfig(id),
-    tickets: tickets.listOpen(id),
-    roles: takerole.listPanels(id),
-    banners: listPresets(),
-    settings: settings.publicView(),
-    levels: community.topLevels(id, 8),
-  });
+  try {
+    const id = gid(req);
+    const snap = await guildOrFail(req);
+    const guilds = typeof runtime.listGuilds === "function" ? runtime.listGuilds() : [];
+    res.json({
+      webName: WEB_NAME,
+      botOnline: runtime.isReady(),
+      guildId: id,
+      guild: snap,
+      guilds,
+      inviteUrl: typeof runtime.inviteUrl === "function" ? runtime.inviteUrl() : null,
+      store: store.getConfig(id),
+      welcome: welcome.getConfig(id),
+      community: community.getConfig(id),
+      tickets: tickets.listOpen(id),
+      roles: takerole.listPanels(id),
+      banners: listPresets(),
+      settings: settings.publicView(),
+      levels: community.topLevels(id, 8),
+    });
+  } catch (err) {
+    console.error("bootstrap:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/api/discord", auth, async (req, res) => {

@@ -195,6 +195,9 @@
       <div class="err" id="loginErr">Password salah</div>
       <div style="height:16px"></div>
       <button class="btn" onclick="login()">Masuk dashboard</button>
+      <p id="loginInviteWrap" style="margin-top:18px;display:none">
+        <a id="loginInvite" href="#" target="_blank" rel="noopener" style="color:#c4b5fd;font-size:.85rem">Invite bot (wajib scope applications.commands)</a>
+      </p>
     </div>
   </div>
 
@@ -538,6 +541,17 @@ function toast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1800);
 }
+(async function preloadInvite() {
+  try {
+    const st = await fetch('/api/status').then((r) => r.json());
+    if (st.inviteUrl) {
+      const a = document.getElementById('loginInvite');
+      a.href = st.inviteUrl;
+      document.getElementById('loginInviteWrap').style.display = 'block';
+    }
+  } catch { /* ignore */ }
+})();
+
 async function login() {
   try {
     const r = await api('/api/login', { method: 'POST', body: JSON.stringify({ password: document.getElementById('loginPass').value }) });

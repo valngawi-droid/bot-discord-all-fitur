@@ -54,9 +54,12 @@ function attachEvents(client) {
 
   client.once("ready", () => {
     console.log(`✅ X Community login sebagai ${client.user.tag}`);
+    console.log(`   Multi-server: ${client.guilds.cache.size} guild`);
     const apply = () => {
       const s = settings.get();
-      client.user.setActivity(s.activity || s.botName, { type: activityType(s.activityType) });
+      const n = client.guilds.cache.size;
+      const name = s.activity || `${n} server · ${s.botName}`;
+      client.user.setActivity(name, { type: activityType(s.activityType) });
     };
     apply();
     setInterval(apply, 30000).unref?.();
@@ -65,10 +68,16 @@ function attachEvents(client) {
     if (nick) {
       runtime.applyBotName(nick).catch(() => {});
     }
+    if (process.env.SKIP_DEPLOY !== "1") {
+      registerCommands(client).catch((err) => console.error("❌ Deploy command:", err.message));
+    }
   });
 
   client.on("guildCreate", (guild) => {
     console.log(`➕ Masuk server: ${guild.name} (${guild.id}) · total ${client.guilds.cache.size}`);
+    if (process.env.SKIP_DEPLOY !== "1") {
+      registerCommands(client).catch(() => {});
+    }
   });
   client.on("guildDelete", (guild) => {
     console.log(`➖ Keluar server: ${guild.name} (${guild.id}) · total ${client.guilds.cache.size}`);

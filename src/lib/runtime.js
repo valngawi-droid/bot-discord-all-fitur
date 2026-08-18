@@ -10,7 +10,7 @@ function getClient() {
 }
 
 function isReady() {
-  return Boolean(client && client.isReady());
+  return Boolean(client && client.isReady && client.isReady());
 }
 
 function listGuilds() {
@@ -30,8 +30,15 @@ function firstGuildId() {
   return list[0]?.id || process.env.GUILD_ID || null;
 }
 
+function inviteUrl() {
+  const id = process.env.CLIENT_ID || client?.user?.id;
+  if (!id) return null;
+  const perms = "268823632";
+  return `https://discord.com/oauth2/authorize?client_id=${id}&permissions=${perms}&scope=bot%20applications.commands`;
+}
+
 async function getGuildSnapshot(guildId) {
-  if (!isReady() || !guildId) return null;
+  if (!isReady() || !guildId || guildId === "web") return null;
   try {
     const guild =
       client.guilds.cache.get(guildId) || (await client.guilds.fetch(guildId).catch(() => null));
@@ -66,12 +73,15 @@ async function getGuildSnapshot(guildId) {
   }
 }
 
-async function applyBotName(name) {
+async function applyBotName(name, guildId) {
   if (!isReady()) return { ok: false, error: "Bot belum online" };
   const nick = String(name || "").trim().slice(0, 32);
   if (!nick) return { ok: false, error: "Nama kosong" };
+  const targets = guildId
+    ? [client.guilds.cache.get(guildId)].filter(Boolean)
+    : [...client.guilds.cache.values()];
   const results = [];
-  for (const guild of client.guilds.cache.values()) {
+  for (const guild of targets) {
     try {
       await guild.members.me.setNickname(nick);
       results.push({ guild: guild.name, ok: true });
@@ -86,6 +96,9 @@ module.exports = {
   setClient,
   getClient,
   isReady,
+  listGuilds,
+  firstGuildId,
+  inviteUrl,
   getGuildSnapshot,
   applyBotName,
 };
