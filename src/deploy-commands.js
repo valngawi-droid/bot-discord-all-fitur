@@ -481,42 +481,48 @@ const commands = [
     .addStringOption((o) => o.setName("opsi5").setDescription("Opsi 5")),
 ].map((c) => c.toJSON());
 
-const rest = new REST({ version: "10" }).setToken(process.env.BOT_TOKEN);
+async function registerCommands(discordClient) {
+  const token = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN;
+  const clientId = process.env.CLIENT_ID || discordClient?.user?.id;
+  if (!token || !clientId) {
+    throw new Error("BOT_TOKEN/DISCORD_TOKEN dan CLIENT_ID wajib (atau bot harus sudah login)");
+  }
+  const rest = new REST({ version: "10" }).setToken(token);
+  console.log(`⏳ Mendaftarkan ${commands.length} slash commands (multi-server)...`);
+  await rest.put(Routes.applicationCommands(clientId), { body: commands });
+  console.log("✅ Command global terdaftar");
 
-(async () => {
-  try {
-    if (!process.env.BOT_TOKEN || !process.env.CLIENT_ID) {
-      console.error("❌ BOT_TOKEN dan CLIENT_ID wajib diisi di .env");
-      process.exit(1);
-    }
-    console.log(`⏳ Mendaftarkan ${commands.length} slash commands (multi-server)...`);
-    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
-      body: commands,
-    });
-    console.log("✅ Command global terdaftar (bisa butuh ±1 jam di server baru)");
-
-    let guilds = [];
+  let guilds = [];
+  if (discordClient?.guilds?.cache?.size) {
+    guilds = [...discordClient.guilds.cache.values()].map((g) => ({ id: g.id, name: g.name }));
+  } else {
     try {
       guilds = await rest.get(Routes.userGuilds());
     } catch {
       guilds = [];
     }
-    if (process.env.GUILD_ID && !guilds.some((g) => g.id === process.env.GUILD_ID)) {
-      guilds.push({ id: process.env.GUILD_ID, name: process.env.GUILD_ID });
-    }
-    for (const g of guilds) {
-      try {
-        await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, g.id), {
-          body: commands,
-        });
-        console.log("   instant:", g.name || g.id);
-      } catch (err) {
-        console.warn("   skip", g.id, err.message);
-      }
-    }
-    console.log(`✅ Siap multi-server (${guilds.length} guild instant + global)`);
-  } catch (err) {
-    console.error("❌ Gagal daftar commands:", err);
-    process.exit(1);
   }
-})();
+  if (process.env.GUILD_ID && !guilds.some((g) => g.id === process.env.GUILD_ID)) {
+    guilds.push({ id: process.env.GUILD_ID, name: process.env.GUILD_ID });
+  }
+  for (const g of guilds) {
+    try {
+      await rest.put(Routes.applicationGuildCommands(clientId, g.id), { body: commands });
+      console.log("   instant:", g.name || g.id);
+    } catch (err) {
+      console.warn("   skip", g.id, err.message);
+    }
+  }
+  console.log(`✅ Slash command siap (${guilds.length} server + global)`);
+}
+
+module.exports = { registerCommands, commands };
+
+if (require.main === module) {
+  registerCommands()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error("❌ Gagal daftar commands:", err);
+      process.exit(1);
+    });
+}

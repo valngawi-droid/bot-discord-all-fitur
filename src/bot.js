@@ -20,6 +20,7 @@ const utility = require("./features/utility");
 const community = require("./features/community");
 const runtime = require("./lib/runtime");
 const settings = require("./lib/settings");
+const { registerCommands } = require("./deploy-commands");
 
 const BASE_INTENTS = [
   GatewayIntentBits.Guilds,
